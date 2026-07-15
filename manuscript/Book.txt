@@ -1,0 +1,13 @@
+preface.md
+introduction.md
+basic_probability.md
+conditional_probability.md
+discrete_random_variables.md
+binomial_geometric.md
+continuous_distributions.md
+law_of_large_numbers.md
+central_limit_theorem.md
+monte_carlo.md
+bayesian_inference.md
+markov_chains.md
+book_wrapup.md
