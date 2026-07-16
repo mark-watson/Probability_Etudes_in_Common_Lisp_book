@@ -41,9 +41,11 @@ Q(p) = \inf \{ x : F(x) \geq p \}.
 The definitions of expectation and variance carry over to the continuous case, with integrals replacing sums:
 
 ```$
-E[X] = \int_{-\infty}^{\infty} x \, f(x) \, dx, \qquad
-E[g(X)] = \int_{-\infty}^{\infty} g(x) \, f(x) \, dx, \qquad
-\mathrm{Var}(X) = E[X^2] - (E[X])^2.
+\begin{aligned}
+E[X]         &= \int_{-\infty}^{\infty} x \, f(x) \, dx, \\
+E[g(X)]      &= \int_{-\infty}^{\infty} g(x) \, f(x) \, dx, \\
+\mathrm{Var}(X) &= E[X^2] - (E[X])^2.
+\end{aligned}
 ```
 
 All the properties from the discrete case still hold: linearity of expectation, additivity of variance for independent variables, and the concentration inequalities of Markov and Chebyshev.

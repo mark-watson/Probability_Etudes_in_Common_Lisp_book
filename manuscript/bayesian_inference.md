@@ -211,22 +211,22 @@ The key insight of Bayesian inference is that learning is the process of updatin
 
 ## Problem Set
 
-**Problem 9.1.** Starting from a Beta(1, 1) prior and observing 3 successes in 10 flips, compute the posterior parameters, the posterior mean, and the posterior variance. Compare with the raw sample proportion 3/10.
+**Problem 9.1.** Starting from a `\text{Beta}(1, 1)`$ prior and observing `3`$ successes in `10`$ flips, compute the posterior parameters, the posterior mean, and the posterior variance. Compare with the raw sample proportion `3/10`$.
 
-**Problem 9.2 (Sequential vs. batch).** Observe the sequence of coin flips 1, 0, 1, 1, 0. Starting from Beta(1, 1), update the posterior after each flip and record the (a, b) pair at each step. Then compute the batch update after all 5 flips. Verify that the two answers agree.
+**Problem 9.2 (Sequential vs. batch).** Observe the sequence of coin flips `1, 0, 1, 1, 0`$. Starting from `\text{Beta}(1, 1)`$, update the posterior after each flip and record the `(a, b)`$ pair at each step. Then compute the batch update after all `5`$ flips. Verify that the two answers agree.
 
-**Problem 9.3 (Prior sensitivity).** Suppose the data are 7 successes in 10 trials. Compute the posterior mean for three priors: Beta(1, 1), Beta(10, 10), and Beta(1, 100). Interpret each of these priors in words and explain how they influence the posterior estimate.
+**Problem 9.3 (Prior sensitivity).** Suppose the data are `7`$ successes in `10`$ trials. Compute the posterior mean for three priors: `\text{Beta}(1, 1), \text{Beta}(10, 10)`$, and `\text{Beta}(1, 100)`$. Interpret each of these priors in words and explain how they influence the posterior estimate.
 
-**Problem 9.4 (Credible interval).** For a Beta(75, 27) posterior, compute an approximate 95% credible interval [L, U]. Since the Beta CDF is not elementary, use numerical integration of the density (as the example program does for normalization) and find the values L and U such that P(theta < L) = 0.025 and P(theta > U) = 0.025.
+**Problem 9.4 (Credible interval).** For a `\text{Beta}(75, 27)`$ posterior, compute an approximate 95% credible interval `[L, U]`$. Since the Beta CDF is not elementary, use numerical integration of the density (as the example program does for normalization) and find the values `L`$ and `U`$ such that `P(\theta < L) = 0.025`$ and `P(\theta > U) = 0.025`$.
 
-**Problem 9.5 (MAP estimate).** For a Beta(a, b) distribution with a, b > 1, the mode is at (a - 1) / (a + b - 2). Verify this by differentiating the log-density and setting the derivative to zero. Compute the MAP estimate for a Beta(75, 27) posterior and compare with the posterior mean.
+**Problem 9.5 (MAP estimate).** For a `\text{Beta}(a, b)`$ distribution with `a, b > 1`$, the mode is at `(a - 1)/(a + b - 2)`$. Verify this by differentiating the log-density and setting the derivative to zero. Compute the MAP estimate for a `\text{Beta}(75, 27)`$ posterior and compare with the posterior mean.
 
-**Problem 9.6 (Posterior predictive).** For a Beta(75, 27) posterior, what is the probability that the next flip is heads? Now compute the probability that the next two flips are both heads. Hint: the answer is not (75/102)^2. Use the fact that the two flips are not independent given the posterior on theta; average the joint likelihood over the posterior.
+**Problem 9.6 (Posterior predictive).** For a `\text{Beta}(75, 27)`$ posterior, what is the probability that the next flip is heads? Now compute the probability that the next two flips are both heads. Hint: the answer is not `(75/102)^2`$. Use the fact that the two flips are not independent given the posterior on `\theta`$; average the joint likelihood over the posterior.
 
-**Problem 9.7 (Jeffreys prior).** Rerun the example with a Beta(1/2, 1/2) prior instead of Beta(1, 1). Compare the posterior after 10 flips (7 successes, 3 failures) under both priors. When do the two priors give noticeably different answers?
+**Problem 9.7 (Jeffreys prior).** Rerun the example with a `\text{Beta}(1/2,\, 1/2)`$ prior instead of `\text{Beta}(1, 1)`$. Compare the posterior after `10`$ flips (`7`$ successes, `3`$ failures) under both priors. When do the two priors give noticeably different answers?
 
-**Problem 9.8 (A biased coin).** Suppose you have strong prior belief that a coin is fair, expressed as a Beta(50, 50) prior (mean 0.5 and quite concentrated). You then observe 30 heads in 40 flips. What is your posterior mean? Is the data enough to override your prior?
+**Problem 9.8 (A biased coin).** Suppose you have strong prior belief that a coin is fair, expressed as a `\text{Beta}(50, 50)`$ prior (mean `0.5`$ and quite concentrated). You then observe `30`$ heads in `40`$ flips. What is your posterior mean? Is the data enough to override your prior?
 
 **Problem 9.9 (Coding exercise).** Extend the example program to compute the posterior predictive probability of the next observation being a success. Also extend it to plot (or print a text histogram of) the posterior density at several intermediate stages so you can visually watch the belief concentrate.
 
-**Problem 9.10 (A different conjugate pair).** Suppose you are counting the number of shooting stars per hour and model it as Poisson(lambda). A conjugate prior for the rate lambda is Gamma(alpha, beta), and the posterior after observing counts x_1, ..., x_n is Gamma(alpha + sum, beta + n). Starting from a Gamma(1, 1) prior and observing counts 5, 7, 4, 6, compute the posterior parameters and the posterior mean. Compare with the sample mean of the counts.
+**Problem 9.10 (A different conjugate pair).** Suppose you are counting the number of shooting stars per hour and model it as `\text{Poisson}(\lambda)`$. A conjugate prior for the rate `\lambda`$ is `\text{Gamma}(\alpha, \beta)`$, and the posterior after observing counts `x_1, \ldots, x_n`$ is `\text{Gamma}(\alpha + \sum x_i,\, \beta + n)`$. Starting from a `\text{Gamma}(1, 1)`$ prior and observing counts `5, 7, 4, 6`$, compute the posterior parameters and the posterior mean. Compare with the sample mean of the counts.

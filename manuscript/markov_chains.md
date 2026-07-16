@@ -136,8 +136,10 @@ The program finds the stationary distribution two ways. The first is by **long i
 The second is by **solving the linear system** `\pi = \pi P`$ directly. For a two-state chain with transition matrix `\begin{pmatrix} a & 1-a \\ b & 1-b \end{pmatrix}`$, the stationary distribution is:
 
 ```$
-\pi_{\text{Sunny}} = \frac{b}{1 - a + b}, \qquad
-\pi_{\text{Rainy}} = \frac{1 - a}{1 - a + b}.
+\begin{aligned}
+\pi_{\text{Sunny}} &= \frac{b}{1 - a + b}, \\
+\pi_{\text{Rainy}} &= \frac{1 - a}{1 - a + b}.
+\end{aligned}
 ```
 
 {lang="lisp",linenos=off}
