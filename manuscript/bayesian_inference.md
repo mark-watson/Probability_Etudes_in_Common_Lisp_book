@@ -16,17 +16,19 @@ Neither paradigm is universally "correct"; they are two different frameworks for
 
 ## The Bayesian Framework
 
-In Bayesian inference, an unknown parameter theta is treated as a random variable with its own probability distribution. The core equation is:
+In Bayesian inference, an unknown parameter `\theta`$ is treated as a random variable with its own probability distribution. The core equation is:
 
-    p(theta | data) is proportional to p(data | theta) * p(theta)
+```$
+p(\theta \mid \text{data}) \propto p(\text{data} \mid \theta) \, p(\theta).
+```
 
 Reading from right to left:
 
-- **p(theta)** is the **prior**: what we believe about theta before seeing any data.
-- **p(data | theta)** is the **likelihood**: how likely the observed data is if theta has a particular value.
-- **p(theta | data)** is the **posterior**: what we believe about theta after seeing the data.
+- `p(\theta)`$ is the **prior**: what we believe about `\theta`$ before seeing any data.
+- `p(\text{data} \mid \theta)`$ is the **likelihood**: how likely the observed data is if `\theta`$ has a particular value.
+- `p(\theta \mid \text{data})`$ is the **posterior**: what we believe about `\theta`$ after seeing the data.
 
-The proportionality constant is p(data), which normalizes the posterior so it sums (or integrates) to 1. In practice, we often work with the unnormalized posterior and normalize at the end.
+The proportionality constant is `p(\text{data})`$, which normalizes the posterior so it sums (or integrates) to `1`$. In practice, we often work with the unnormalized posterior and normalize at the end.
 
 The posterior distribution is the complete answer that a Bayesian inference provides. From it we can compute point estimates (like the posterior mean or median), credible intervals, and predictions about future data. The posterior is a much richer object than a single point estimate; it captures how much we know and how much we still do not know.
 
@@ -36,8 +38,8 @@ The prior expresses beliefs about theta before observing data. In some problems,
 
 Several classical choices of uninformative prior appear in the literature:
 
-- **Uniform prior**: assign equal density to all values of theta. This is what we use in the example (Beta(1, 1)) for a coin bias. Uniform priors seem to convey no information, but they are not invariant under reparameterization: a uniform prior on the probability p is not uniform on the odds p / (1 - p).
-- **Jeffreys prior**: constructed to be invariant under reparameterization. For a Bernoulli likelihood, the Jeffreys prior is Beta(1/2, 1/2), which is peaked near 0 and 1.
+- **Uniform prior**: assign equal density to all values of `\theta`$. This is what we use in the example (`\text{Beta}(1, 1)`$) for a coin bias. Uniform priors seem to convey no information, but they are not invariant under reparameterization: a uniform prior on the probability `p`$ is not uniform on the odds `p/(1 - p)`$.
+- **Jeffreys prior**: constructed to be invariant under reparameterization. For a Bernoulli likelihood, the Jeffreys prior is `\text{Beta}(1/2,\, 1/2)`$, which is peaked near `0`$ and `1`$.
 - **Reference priors**: derived to maximize the information gain from the data, again invariant under transformations.
 
 The choice of uninformative prior can matter for small sample sizes but usually washes out as more data arrive. This convergence of the posterior toward the true value regardless of the prior is one of the most attractive features of Bayesian inference.
@@ -48,18 +50,23 @@ The prior can also express strong beliefs. In a clinical trial with a new drug, 
 
 For certain combinations of likelihood and prior, the posterior is in the same family as the prior. This is called **conjugacy**, and it makes Bayesian updating remarkably simple.
 
-For a Bernoulli or binomial likelihood with unknown success probability theta, the conjugate prior is the **Beta distribution**. If the prior is Beta(a, b) and we observe s successes and f failures, the posterior is:
+For a Bernoulli or binomial likelihood with unknown success probability `\theta`$, the conjugate prior is the **Beta distribution**. If the prior is `\text{Beta}(a, b)`$ and we observe `s`$ successes and `f`$ failures, the posterior is:
 
-    Beta(a + s, b + f)
+```$
+\text{Beta}(a + s,\, b + f).
+```
 
-The Beta(a, b) distribution has a density on the interval [0, 1]:
+The `\text{Beta}(a, b)`$ distribution has a density on the interval `[0, 1]`$:
 
-    f(theta) = theta^(a-1) * (1-theta)^(b-1) / B(a, b)
+```$
+f(\theta) = \frac{\theta^{a-1} (1 - \theta)^{b-1}}{B(a, b)},
+```
 
-where B(a, b) is the Beta function (the normalizing constant). The parameters a and b act as **pseudo-counts**: a - 1 prior successes and b - 1 prior failures. The mean and variance are:
+where `B(a, b)`$ is the Beta function (the normalizing constant). The parameters `a`$ and `b`$ act as **pseudo-counts**: `a - 1`$ prior successes and `b - 1`$ prior failures. The mean and variance are:
 
-    E[theta] = a / (a + b)
-    Var(theta) = a * b / ((a+b)^2 * (a+b+1))
+```$
+E[\theta] = \frac{a}{a + b}, \qquad \mathrm{Var}(\theta) = \frac{a b}{(a + b)^2 (a + b + 1)}.
+```
 
 The program implements these formulas:
 
@@ -102,27 +109,29 @@ This is the same result whether we update all at once (batch) or one observation
 
 The posterior distribution is the complete answer, but sometimes we want a single number or a range as a summary.
 
-The **posterior mean** E[theta | data] is the standard point estimate. It minimizes squared-error loss.
+The **posterior mean** `E[\theta \mid \text{data}]`$ is the standard point estimate. It minimizes squared-error loss.
 
-The **maximum a posteriori (MAP) estimate** is the value of theta that maximizes the posterior density. It corresponds to the "mode" of the posterior. When the prior is flat, the MAP estimate coincides with the maximum-likelihood estimate.
+The **maximum a posteriori (MAP) estimate** is the value of `\theta`$ that maximizes the posterior density. It corresponds to the "mode" of the posterior. When the prior is flat, the MAP estimate coincides with the maximum-likelihood estimate.
 
-A **credible interval** is a range that contains the parameter with a specified posterior probability. A 95% credible interval [L, U] satisfies P(L <= theta <= U | data) = 0.95. Credible intervals answer the question that most practitioners really want: given what I have observed, what is a plausible range for the parameter?
+A **credible interval** is a range that contains the parameter with a specified posterior probability. A 95% credible interval `[L, U]`$ satisfies `P(L \leq \theta \leq U \mid \text{data}) = 0.95`$. Credible intervals answer the question that most practitioners really want: given what I have observed, what is a plausible range for the parameter?
 
 ## Prediction: The Posterior Predictive
 
-Bayesian inference gives more than parameter estimates; it also gives principled predictions about future data. The **posterior predictive distribution** for a future observation X_new given past data D is:
+Bayesian inference gives more than parameter estimates; it also gives principled predictions about future data. The **posterior predictive distribution** for a future observation `X_{\text{new}}`$ given past data `D`$ is:
 
-    p(X_new | D) = integral of p(X_new | theta) * p(theta | D) d(theta)
+```$
+p(X_{\text{new}} \mid D) = \int p(X_{\text{new}} \mid \theta) \, p(\theta \mid D) \, d\theta.
+```
 
-This averages the likelihood over the posterior on theta. Unlike a frequentist point-prediction, the posterior predictive automatically accounts for uncertainty in theta.
+This averages the likelihood over the posterior on `\theta`$. Unlike a frequentist point-prediction, the posterior predictive automatically accounts for uncertainty in `\theta`$.
 
-For the Beta-Bernoulli model, if the posterior after observations is Beta(a, b), then the probability of a success on the next trial is E[theta | data] = a / (a + b). This is exactly the posterior mean, which is why the posterior mean is such a natural point estimate.
+For the Beta-Bernoulli model, if the posterior after observations is `\text{Beta}(a, b)`$, then the probability of a success on the next trial is `E[\theta \mid \text{data}] = a / (a + b)`$. This is exactly the posterior mean, which is why the posterior mean is such a natural point estimate.
 
 ## The Example: Estimating a Coin's Bias
 
-We start with a Beta(1, 1) prior, which is the uniform distribution on [0, 1]. This represents maximum ignorance: before seeing any data, every value of theta is equally likely.
+We start with a `\text{Beta}(1, 1)`$ prior, which is the uniform distribution on `[0, 1]`$. This represents maximum ignorance: before seeing any data, every value of `\theta`$ is equally likely.
 
-Then we simulate 100 flips of a coin with true bias theta = 0.7 and update our posterior. The program shows the posterior at several intermediate stages:
+Then we simulate `100`$ flips of a coin with true bias `\theta = 0.7`$ and update our posterior. The program shows the posterior at several intermediate stages:
 
 {lang="lisp",linenos=off}
 ~~~~~~~~
@@ -164,20 +173,22 @@ true value and the variance shrinks to 0 (Bernoulli's theorem).
 
 Watch what happens as data accumulates:
 
-- **Prior**: Beta(1, 1) with mean 0.5 and variance 0.083. We know nothing yet.
-- **After 10 flips**: Beta(8, 4) with mean 0.667 and variance 0.017. The mean has shifted toward 0.7, and the variance has shrunk by a factor of 5.
-- **After 50 flips**: Beta(37, 15) with mean 0.712 and variance 0.004. We are getting closer, and the variance is still shrinking.
-- **After 100 flips**: Beta(75, 27) with mean 0.735 and variance 0.002. The posterior mean is close to the true value of 0.7, and the variance is tiny.
+- **Prior**: `\text{Beta}(1, 1)`$ with mean `0.5`$ and variance `0.083`$. We know nothing yet.
+- **After `10`$ flips**: `\text{Beta}(8, 4)`$ with mean `0.667`$ and variance `0.017`$. The mean has shifted toward `0.7`$, and the variance has shrunk by a factor of `5`$.
+- **After `50`$ flips**: `\text{Beta}(37, 15)`$ with mean `0.712`$ and variance `0.004`$. We are getting closer, and the variance is still shrinking.
+- **After `100`$ flips**: `\text{Beta}(75, 27)`$ with mean `0.735`$ and variance `0.002`$. The posterior mean is close to the true value of `0.7`$, and the variance is tiny.
 
-The posterior mean (0.735) is not exactly 0.7 because we only have 100 data points. With 1,000 flips, it would be even closer. The variance continues to shrink toward zero as more data arrives, reflecting increasing confidence in our estimate.
+The posterior mean (`0.735`$) is not exactly `0.7`$ because we only have `100`$ data points. With `1000`$ flips, it would be even closer. The variance continues to shrink toward zero as more data arrives, reflecting increasing confidence in our estimate.
 
 ## The Laplace Rule of Succession
 
-With a uniform prior Beta(1, 1), the posterior mean after s successes and f failures is:
+With a uniform prior `\text{Beta}(1, 1)`$, the posterior mean after `s`$ successes and `f`$ failures is:
 
-    E[theta | data] = (s + 1) / (s + f + 2)
+```$
+E[\theta \mid \text{data}] = \frac{s + 1}{s + f + 2}.
+```
 
-This is the famous **Laplace rule of succession**. If you have seen s successes in s + f trials, your best estimate of the success probability is (s+1)/(s+f+2), not s/(s+f). The "+1" and "+2" come from the prior pseudo-counts. This rule prevents overconfidence from small samples: if you flip a coin once and get heads, the rule estimates the bias as 2/3 rather than 1.
+This is the famous **Laplace rule of succession**. If you have seen `s`$ successes in `s + f`$ trials, your best estimate of the success probability is `(s + 1)/(s + f + 2)`$, not `s/(s + f)`$. The `+1`$ and `+2`$ come from the prior pseudo-counts. This rule prevents overconfidence from small samples: if you flip a coin once and get heads, the rule estimates the bias as `2/3`$ rather than `1`$.
 
 Laplace himself used this rule to estimate the probability that the sun would rise tomorrow given that it has risen every day so far. The result is silly if taken too literally, but the underlying mathematical idea, that small samples should not be treated as certain, is enduring and important.
 
@@ -185,12 +196,12 @@ Laplace himself used this rule to estimate the probability that the sun would ri
 
 An important practical question is how much the choice of prior affects the posterior. The general answer is: for small data, the prior matters a lot; for large data, it washes out.
 
-To see this concretely, compare the posterior mean after s successes in n = s + f trials for two different priors:
+To see this concretely, compare the posterior mean after `s`$ successes in `n = s + f`$ trials for two different priors:
 
-- Beta(1, 1) prior: posterior mean = (s + 1) / (n + 2)
-- Beta(10, 10) prior: posterior mean = (s + 10) / (n + 20)
+- `\text{Beta}(1, 1)`$ prior: posterior mean `= (s + 1)/(n + 2)`$
+- `\text{Beta}(10, 10)`$ prior: posterior mean `= (s + 10)/(n + 20)`$
 
-For n = 10 and s = 7, the first gives 8 / 12 = 0.667, and the second gives 17 / 30 = 0.567. These are quite different. But for n = 10000 and s = 7000, the first gives 7001 / 10002 = 0.700, and the second gives 7010 / 10020 = 0.700. They are essentially the same. This washout effect is a hallmark of Bayesian inference with lots of data.
+For `n = 10`$ and `s = 7`$, the first gives `8/12 = 0.667`$, and the second gives `17/30 = 0.567`$. These are quite different. But for `n = 10000`$ and `s = 7000`$, the first gives `7001/10002 = 0.700`$, and the second gives `7010/10020 = 0.700`$. They are essentially the same. This washout effect is a hallmark of Bayesian inference with lots of data.
 
 ## Why This Matters
 
