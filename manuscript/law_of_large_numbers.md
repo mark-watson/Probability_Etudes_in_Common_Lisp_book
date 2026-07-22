@@ -60,6 +60,24 @@ This means that for almost every possible sequence of outcomes, the sample mean 
 
 The difference between the two laws is subtle. The Weak Law says that at each large `n`$, the sample mean is *probably* close to `\mu`$. The Strong Law says that if we watch the whole sequence `M_1, M_2, M_3, \ldots`$, the sequence itself converges to `\mu`$ with probability `1`$. For most practical purposes the two laws give the same guarantee, but the strong law is what the theoretical statistician wants.
 
+### The Borel-Cantelli Lemmas
+
+Almost-sure statements like the Strong Law are usually proved with a pair of results called the **Borel-Cantelli lemmas**, which connect the probabilities of a sequence of events to whether infinitely many of them occur. Write `\{A_n \text{ i.o.}\}`$ for the event that infinitely many of the `A_n`$ happen ("infinitely often").
+
+The **first lemma** says that if the probabilities are summable, the events almost surely stop happening:
+
+```$
+\sum_{n=1}^{\infty} P(A_n) < \infty \quad\Longrightarrow\quad P(A_n \text{ i.o.}) = 0.
+```
+
+The **second lemma** is a partial converse: if the `A_n`$ are independent and their probabilities are *not* summable, then almost surely infinitely many occur:
+
+```$
+\sum_{n=1}^{\infty} P(A_n) = \infty \ \text{ (independent)} \quad\Longrightarrow\quad P(A_n \text{ i.o.}) = 1.
+```
+
+To see how this powers a strong law, let `A_n = \{|M_n - \mu| > \epsilon\}`$ be the event that the sample mean is far from `\mu`$ at step `n`$. If we can show `\sum_n P(A_n) < \infty`$, the first lemma says these deviations stop happening for good, which is exactly almost-sure convergence. The Chebyshev bound `P(A_n) \leq \sigma^2/(n \epsilon^2)`$ gives terms of order `1/n`$, whose sum diverges, so a naive application falls just short. Kolmogorov's proof closes the gap by working along a cleverly chosen subsequence and controlling the values in between with a maximal inequality. The Borel-Cantelli lemmas are the reason almost-sure convergence can be established at all, and they recur throughout the study of random sequences.
+
 ## Modes of Convergence
 
 The distinction between weak and strong laws is a special case of a broader theme in probability: different notions of "convergence of random variables." A brief tour:

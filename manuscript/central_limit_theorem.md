@@ -38,6 +38,28 @@ This is why the normal distribution appears everywhere in nature. Many natural q
 
 The result is worth savoring. A theorem that starts with almost no assumptions about the `X_i`$ except finite variance ends with a very specific conclusion: the standardized sum is a standard normal. It is almost as if the normal distribution is the mathematical shadow of independence and averaging.
 
+## Why It Is True: A Sketch via Generating Functions
+
+The moment generating function from Chapter 3 gives a clean way to see *why* the normal appears, not just that it does. Standardize the individual variables by writing `Y_i = (X_i - \mu)/\sigma`$, so each `Y_i`$ has mean `0`$ and variance `1`$. The standardized sum is
+
+```$
+Z_n = \frac{S_n - n\mu}{\sigma\sqrt{n}} = \frac{1}{\sqrt{n}}\sum_{i=1}^{n} Y_i.
+```
+
+Because the `Y_i`$ are independent, the MGF of `Z_n`$ is the `n`$-th power of one scaled MGF:
+
+```$
+M_{Z_n}(t) = \left[ M_Y\!\left( \frac{t}{\sqrt{n}} \right) \right]^{n}.
+```
+
+Now expand `M_Y`$ near `0`$. Since `M_Y(0) = 1`$, `M_Y'(0) = E[Y] = 0`$, and `M_Y''(0) = E[Y^2] = 1`$, the Taylor expansion is `M_Y(s) = 1 + \tfrac{1}{2}s^2 + o(s^2)`$. Substituting `s = t/\sqrt{n}`$ and raising to the `n`$-th power,
+
+```$
+M_{Z_n}(t) = \left( 1 + \frac{t^2}{2n} + o\!\left(\tfrac{1}{n}\right) \right)^{n} \longrightarrow e^{t^2/2}.
+```
+
+The limit `e^{t^2/2}`$ is exactly the MGF of the standard normal (set `\mu = 0`$, `\sigma = 1`$ in the normal MGF of Chapter 5). Since the MGF determines the distribution, `Z_n`$ converges to `\text{Normal}(0, 1)`$. The whole theorem comes down to one fact: only the first two moments survive the `1/\sqrt{n}`$ scaling. Every distribution with finite variance has the same quadratic leading behaviour, so they all flow to the same bell curve. The `\sqrt{n}`$ in the denominator is forced, being the unique scaling that holds the variance of `Z_n`$ at `1`$; divide by `n`$ and you get the constant `\mu`$ of the Law of Large Numbers, divide by less and the variance blows up. A fully rigorous proof replaces the MGF with the characteristic function `\varphi(t) = E[e^{itX}]`$, which exists for every distribution, but the algebra is the same.
+
 ## Rate of Convergence: Berry-Esseen
 
 The plain CLT is a limit statement: it does not tell us how large `n`$ has to be for the normal approximation to be accurate. The **Berry-Esseen theorem** provides a quantitative bound. Under the additional assumption that the `X_i`$ have finite third absolute moment `E[|X_i|^3]`$, the maximum difference between the CDF of the standardized sum and the standard normal CDF satisfies:
@@ -140,6 +162,10 @@ A common rule of thumb is that `n \geq 30`$ is sufficient for the normal approxi
 For `\text{Binomial}(n, p)`$ situations, an alternative rule of thumb is that the normal approximation is good when both `np`$ and `n(1 - p)`$ exceed `5`$ (some sources use `10`$). This ensures that the distribution is far from being pushed against `0`$ or `n`$ and has enough room in both tails.
 
 In our simulation, `n = 50`$ works beautifully for the symmetric `\text{Bernoulli}(0.5)`$ case. If we used a `\text{Bernoulli}(0.01)`$ instead, which is highly skewed, we would need a much larger `n`$ to see the bell shape emerge.
+
+### The Continuity Correction
+
+When the CLT approximates a *discrete* distribution, such as a binomial count, a small adjustment sharpens the result. A discrete variable puts probability on the integers, while the approximating normal spreads probability continuously, so the event `\{X \geq 60\}`$ is matched better by the normal event `\{X \geq 59.5\}`$: we widen each integer to the half-unit interval around it. To approximate `P(X \geq k)`$ for an integer-valued `X`$, apply the normal approximation to `P(X \geq k - \tfrac12)`$; to approximate `P(X \leq k)`$, use `P(X \leq k + \tfrac12)`$. This **continuity correction** typically cuts the approximation error several-fold for moderate `n`$, and it is worth applying whenever the underlying variable is a count. Problem 7.7 asks you to measure its effect against an exact binomial tail.
 
 ## Beyond i.i.d.: Extensions of the CLT
 

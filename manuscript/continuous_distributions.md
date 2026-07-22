@@ -26,6 +26,8 @@ The cumulative distribution function works the same way as in the discrete case:
 
 Formally, the CDF `F`$ is what really characterizes the distribution. The PDF is defined (when it exists) as the derivative of the CDF. Not every random variable has a PDF, but every real-valued random variable has a CDF.
 
+A random variable that has a density is called **absolutely continuous**, and the density is the derivative of the CDF wherever that derivative exists. Not every continuous CDF comes from a density: there are exotic **singular** distributions whose CDF rises continuously yet has zero derivative almost everywhere. There are also **mixed** distributions that place point masses at some values and spread density over others, such as a waiting time that equals exactly `0`$ with positive probability and is otherwise continuous. The CDF handles all of these uniformly, which is the deeper reason it, not the PDF, is taken as the defining object of a distribution. Every continuous example in this book is absolutely continuous, so a density always exists.
+
 ### The Quantile Function
 
 Sometimes we want the inverse question: given a probability, what value of `X`$ does it correspond to? The **quantile function** `Q`$ is the inverse of the CDF:
@@ -112,7 +114,13 @@ The exponential distribution shares the **memoryless property** with the geometr
 P(X > s + t \mid X > s) = P(X > t).
 ```
 
-The proof is a short computation using the closed form `F(x) = 1 - e^{-\lambda x}`$. The exponential distribution is the **only** continuous distribution on `[0, \infty)`$ with this property. Its natural discrete counterpart is the geometric distribution.
+The proof is a short computation. Since `P(X > x) = e^{-\lambda x}`$,
+
+```$
+P(X > s + t \mid X > s) = \frac{P(X > s + t)}{P(X > s)} = \frac{e^{-\lambda(s + t)}}{e^{-\lambda s}} = e^{-\lambda t} = P(X > t).
+```
+
+The exponential distribution is the **only** continuous distribution on `[0, \infty)`$ with this property, and its natural discrete counterpart is the geometric distribution. The link is exact in a limit: chop time into slices of width `\Delta t`$ and let each slice be an independent Bernoulli trial with success probability `\lambda\,\Delta t`$. The number of slices until the first success is geometric, and as `\Delta t \to 0`$ the waiting time converges in distribution to `\text{Exponential}(\lambda)`$. The memorylessness of the geometric passes to the exponential in the limit.
 
 The exponential distribution is closely related to the **Poisson distribution** we met briefly in the previous chapter. If events happen at random times such that the count of events in any interval of length `t`$ is Poisson with mean `\lambda t`$, and the counts in disjoint intervals are independent, then the time between successive events is exponential with rate `\lambda`$. This unified picture is called the **Poisson process** and it describes radioactive decay, arrivals at a queue, and many other phenomena.
 
@@ -163,6 +171,22 @@ The normal CDF does not have a closed form in terms of elementary functions. It 
     (* 0.5 (+ 1.0 (* sign erf)))))
 ~~~~~~~~
 
+### The Moment Generating Function of the Normal
+
+The normal distribution has moment generating function
+
+```$
+M_X(t) = \exp\!\left( \mu t + \tfrac{1}{2}\sigma^2 t^2 \right).
+```
+
+Differentiating at `t = 0`$ returns the mean `\mu`$, and the second derivative, after subtracting `\mu^2`$, returns the variance `\sigma^2`$. The exponential-of-a-quadratic shape explains two facts stated above. First, if `X \sim \text{Normal}(\mu_1, \sigma_1^2)`$ and `Y \sim \text{Normal}(\mu_2, \sigma_2^2)`$ are independent, then multiplying their MGFs adds the exponents,
+
+```$
+M_{X+Y}(t) = \exp\!\left( (\mu_1 + \mu_2)\,t + \tfrac{1}{2}(\sigma_1^2 + \sigma_2^2)\,t^2 \right),
+```
+
+which is again a normal MGF, so `X + Y \sim \text{Normal}(\mu_1 + \mu_2,\ \sigma_1^2 + \sigma_2^2)`$. The family is closed under adding independent members: means add and variances add. Second, an affine map `aX + b`$ is normal with mean `a\mu + b`$ and variance `a^2 \sigma^2`$; the special case `Z = (X - \mu)/\sigma`$ is the standardization that turns any normal into the standard normal. This closure under sums and affine maps is exactly what makes the normal the natural limit in the Central Limit Theorem of the next chapter.
+
 ### The 68-95-99.7 Rule
 
 For any normal distribution, approximately:
@@ -201,6 +225,22 @@ The **Student's t distribution** with `k`$ degrees of freedom appears when estim
 The **log-normal distribution** is the distribution of `e^X`$ where `X`$ is normal. It has a long right tail and is often used to model quantities that are positive and heavy-tailed, such as file sizes or income distributions.
 
 These distributions form an interconnected web: many can be derived from one another by transformations, sums, or limits. Learning them one by one is less useful than understanding the general framework of PDFs, CDFs, expectations, and variance; the specific formulas become recognizable applications of a few underlying ideas.
+
+## The Maximum Entropy Viewpoint
+
+A single principle picks out all three of our main distributions at once. The **differential entropy** of a continuous distribution with density `f`$ is
+
+```$
+h(X) = -\int_{-\infty}^{\infty} f(x) \ln f(x)\, dx,
+```
+
+a measure of how spread out, or how uncommitted, the distribution is. Among all distributions consistent with a given set of constraints, the one that maximizes `h`$ is the least presumptuous choice: it adds no structure beyond what the constraints force. The three workhorse distributions are exactly these maximum-entropy answers:
+
+- Constrained only to live on a bounded interval `[a, b]`$, the maximum-entropy distribution is `\text{Uniform}(a, b)`$.
+- Constrained to `[0, \infty)`$ with a fixed mean, it is the `\text{Exponential}`$ distribution.
+- Constrained to the whole real line with a fixed mean and variance, it is the `\text{Normal}`$ distribution.
+
+This is why the three appear so often. Each is the most honest distribution to assume when all you know is a support, a mean, or a mean and a variance. The maximum-entropy principle recurs throughout statistical physics, information theory, and Bayesian modeling as a systematic way to turn partial knowledge into a full distribution.
 
 ## Transformations of Random Variables
 

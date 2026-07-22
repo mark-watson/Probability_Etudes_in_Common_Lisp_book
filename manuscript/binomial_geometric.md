@@ -55,6 +55,14 @@ The mean formula has an intuitive explanation via linearity of expectation. Each
 
 Formally, if `X_1, X_2, \ldots, X_n`$ are i.i.d. `\text{Bernoulli}(p)`$ random variables and `S = X_1 + X_2 + \cdots + X_n`$, then `S`$ has the `\text{Binomial}(n, p)`$ distribution. This decomposition is often the fastest way to prove properties of the binomial: linearity of expectation gives `E[S] = np`$ in one line, and independence gives `\mathrm{Var}(S) = np(1-p)`$ in another. Any theorem you know about sums of independent random variables applies immediately to binomial random variables.
 
+The same decomposition hands us the moment generating function for free. A single `\text{Bernoulli}(p)`$ variable has MGF `E[e^{tX_i}] = (1 - p) + p e^{t}`$, and because the trials are independent the MGF of their sum is the product of the individual MGFs:
+
+```$
+M_S(t) = \left(1 - p + p e^{t}\right)^{n}.
+```
+
+Reading the mean and variance off the first two derivatives at `t = 0`$ recovers `np`$ and `np(1 - p)`$ yet again. The product form also proves a **reproductive property**: if `X \sim \text{Binomial}(m, p)`$ and `Y \sim \text{Binomial}(n, p)`$ are independent with the *same* `p`$, then `X + Y \sim \text{Binomial}(m + n, p)`$, since their MGFs multiply to `(1 - p + p e^{t})^{m + n}`$. The trial picture makes this obvious too: pooling `m`$ trials with `n`$ more of the same kind simply gives `m + n`$ trials.
+
 ### The Normal Approximation
 
 For large `n`$, the binomial distribution is closely approximated by a normal distribution with mean `np`$ and variance `np(1 - p)`$. This follows from the Central Limit Theorem (Chapter 7). A useful rule of thumb is that the normal approximation is reasonable when both `np`$ and `n(1 - p)`$ are at least `5`$. For a single coin flip (`n = 1`$), the binomial is nowhere near normal; for `1000`$ flips, the normal is nearly indistinguishable from the exact binomial.
@@ -88,6 +96,16 @@ E[Y] = \frac{1}{p}, \qquad \mathrm{Var}(Y) = \frac{1 - p}{p^2}.
 ```
 
 The mean `1/p`$ makes intuitive sense. If the success probability is `1/5`$, you wait about `5`$ trials on average. The smaller the success probability, the longer you expect to wait. The variance grows as `p`$ shrinks, so waiting times for rare events are both long and highly variable.
+
+### Why the Mean Is 1/p
+
+The formula `E[Y] = 1/p`$ has a derivation that uses no series at all, only the structure of the experiment. Condition on the first trial. With probability `p`$ it succeeds and `Y = 1`$. With probability `1 - p`$ it fails, one trial is spent, and the remaining wait is a fresh, statistically identical copy of `Y`$. Hence
+
+```$
+E[Y] = p \cdot 1 + (1 - p)\big(1 + E[Y]\big).
+```
+
+Solving for `E[Y]`$ gives `E[Y] = 1/p`$. The same conditioning trick applied to `E[Y^2]`$ produces the variance `(1 - p)/p^2`$ without summing a single geometric series. This self-consistency argument, in which a quantity is expressed in terms of itself one step later, is the discrete seed of the first-step analysis we will use for Markov chains in the final chapter.
 
 The tail probability `P(Y > k)`$ has an especially clean form:
 

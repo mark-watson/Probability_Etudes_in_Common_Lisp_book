@@ -24,6 +24,36 @@ By the Law of Large Numbers, `\hat{Q}`$ converges to `Q`$ as `n`$ grows. The var
 
 The design freedom in Monte Carlo lies in choosing the random variable `X`$. Any random variable whose expectation equals `Q`$ is a valid estimator, but different choices have different variances and therefore different accuracies for the same sample size. Much of the theory of Monte Carlo is really about finding good `X`$.
 
+Two properties make this estimator trustworthy. It is **unbiased**: `E[\hat{Q}] = \frac{1}{n}\sum_i E[X_i] = Q`$ for every `n`$, so it is centered on the right answer rather than merely approaching it. And because it is unbiased, its **mean squared error** equals its variance,
+
+```$
+E\big[(\hat{Q} - Q)^2\big] = \mathrm{Var}(\hat{Q}) = \frac{\mathrm{Var}(X)}{n},
+```
+
+so the root-mean-square error is exactly the standard error `\sqrt{\mathrm{Var}(X)/n}`$ that the program reports. Reducing error therefore means reducing `\mathrm{Var}(X)`$, which is the whole point of the variance-reduction techniques below. Not every Monte Carlo estimator is unbiased, though: estimators built as ratios or other nonlinear functions of averages carry a bias of order `1/n`$, which the `1/\sqrt{n}`$ standard error dominates for large `n`$ but which matters for small samples.
+
+## Monte Carlo Integration
+
+The most common use of the core idea is computing integrals, because any integral is an expectation in disguise. To evaluate
+
+```$
+I = \int_{a}^{b} h(x)\, dx,
+```
+
+write it as `I = (b - a)\, E[h(U)]`$ with `U \sim \text{Uniform}(a, b)`$, since the uniform density on `[a, b]`$ is the constant `1/(b - a)`$. The estimator draws `U_1, \ldots, U_n`$ uniformly and averages:
+
+```$
+\hat{I} = \frac{b - a}{n} \sum_{i=1}^{n} h(U_i).
+```
+
+More generally, if `f`$ is any density we can sample from, then `\int g(x) f(x)\, dx = E_f[g(X)]`$, estimated by the plain average of `g(X_i)`$ over draws `X_i \sim f`$. The choice of sampling density is where the design freedom lives, because the same integral can be rewritten against *any* density `f`$ that is positive wherever the integrand is nonzero:
+
+```$
+\int g(x)\, dx = \int \frac{g(x)}{f(x)}\, f(x)\, dx = E_f\!\left[\frac{g(X)}{f(X)}\right].
+```
+
+Sampling from an `f`$ concentrated where `g`$ is large is exactly the **importance sampling** we return to below; picking `f`$ is the same as picking the estimator's variance.
+
 ## Estimating Pi
 
 Our example estimates the value of `\pi`$. Consider a unit square `[0, 1] \times [0, 1]`$ (area `1`$) and the quarter disk of radius `1`$ centered at the origin (area `\pi/4`$). If we throw uniformly random points into the square, the probability that a point lands inside the quarter disk equals the ratio of the areas:

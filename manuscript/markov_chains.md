@@ -78,6 +78,14 @@ After `n`$ steps, the distribution is `v_n = v_0 P^n`$. The program computes thi
 
 The `n`$-step transition matrix `P^n`$ has a direct probabilistic meaning: the `(i, j)`$ entry is `P(X_n = j \mid X_0 = i)`$, the probability of being in state `j`$ after `n`$ steps starting from state `i`$. Powers of the transition matrix are one of the primary computational objects when working with Markov chains.
 
+These powers compose in the obvious way. The **Chapman-Kolmogorov equations** state that
+
+```$
+P^{(m+n)}_{ij} = \sum_{k} P^{(m)}_{ik}\, P^{(n)}_{kj},
+```
+
+which is just `P^{m+n} = P^m P^n`$ read entry by entry: to travel from `i`$ to `j`$ in `m + n`$ steps, pass through some intermediate state `k`$ at time `m`$ and sum over all the ways to do it. This identity is the Markov-chain backbone, and it is the discrete-state ancestor of the same-named equations that govern continuous-time and continuous-state Markov processes.
+
 ## Classification of States
 
 Not every state in a Markov chain behaves the same way. A rich vocabulary describes the possible behaviors.
@@ -154,6 +162,26 @@ The second is by **solving the linear system** `\pi = \pi P`$ directly. For a tw
 
 For larger chains, we solve the system `(P^T - I) \pi^T = 0`$ subject to the constraint `\sum_i \pi_i = 1`$. This is a standard linear algebra problem and can also be posed as finding the left eigenvector of `P`$ corresponding to eigenvalue `1`$.
 
+## Why the Chain Converges: The Spectral View
+
+Why should `v_t = v_0 P^t`$ settle down at all, and how fast? The answer lives in the eigenvalues of `P`$. Because every row of `P`$ sums to `1`$, the all-ones column vector is a right eigenvector with eigenvalue `1`$, so `1`$ is always an eigenvalue of a stochastic matrix. The **Perron-Frobenius theorem** supplies the rest: for an irreducible, aperiodic stochastic matrix the eigenvalue `1`$ is simple, with no repeats, and every other eigenvalue satisfies `|\lambda| < 1`$. The left eigenvector for eigenvalue `1`$, normalized to sum to `1`$, is the stationary distribution `\pi`$, and its uniqueness is exactly the simplicity of that eigenvalue.
+
+Convergence then follows by expanding the starting distribution along the eigenvectors of `P`$. Writing the eigenvalues as `1 = \lambda_1 > |\lambda_2| \geq |\lambda_3| \geq \cdots`$, the component along `\pi`$ stays fixed while every other component is multiplied by its eigenvalue at each step:
+
+```$
+v_t = \pi + \sum_{k \geq 2} c_k\, \lambda_k^{t}\, u_k \;\longrightarrow\; \pi,
+```
+
+since `|\lambda_k|^{t} \to 0`$ for `k \geq 2`$. The slowest-decaying term is governed by the **second-largest eigenvalue modulus** `|\lambda_2|`$, often called the SLEM. The distance to stationarity shrinks geometrically at rate `|\lambda_2|`$: a value near `0`$ means the chain forgets its start almost at once, a value near `1`$ means slow mixing. For the weather chain the eigenvalues are `1`$ and `0.4`$, so the deviation from `(2/3,\, 1/3)`$ falls by a factor of `0.4`$ each step, which is why the printed distribution has already reached equilibrium by step `10`$.
+
+The natural way to measure the remaining gap is the **total variation distance**
+
+```$
+\| v_t - \pi \|_{\mathrm{TV}} = \tfrac{1}{2} \sum_{i} |v_t(i) - \pi_i|,
+```
+
+the largest difference in probability the two distributions assign to any event. The **mixing time** is the number of steps needed to push this distance below a small `\epsilon`$. Because the total variation distance decays like `|\lambda_2|^{t}`$, the mixing time scales as `1/\log(1/|\lambda_2|)`$ up to constants. Controlling `|\lambda_2|`$ is the central problem in the design of Markov chain Monte Carlo samplers, where a chain that mixes slowly can make an otherwise correct algorithm useless in practice. Problems 10.9 and 10.10 measure this decay directly.
+
 ## Running the Example
 
 ```
@@ -185,6 +213,18 @@ unique stationary distribution (ergodic theorem for Markov chains).
 Watch the distribution evolve. We start certainly Sunny: [1, 0]. After one step, there is an 80% chance of Sunny and 20% of Rainy. After two steps, the distribution has shifted further: [0.72, 0.28]. By step 10, the distribution has settled at approximately [2/3, 1/3], and it stays there forever.
 
 The stationary distribution is [2/3, 1/3]: in the long run, about 67% of days are Sunny and 33% are Rainy. Both methods of finding it agree. The chain has "forgotten" its starting state and settled into equilibrium.
+
+## Hitting Times and First-Step Analysis
+
+The stationary distribution answers questions about the long run. A different and equally practical question asks *when* something first happens: how many steps until the chain first reaches a state, or which of several absorbing states it ends up in. The standard tool is **first-step analysis**, which sets up equations by conditioning on the first transition, exactly the self-consistency trick we used for the geometric mean in Chapter 4.
+
+Let `h_i`$ be the expected number of steps to reach a target set `A`$ starting from state `i`$. If `i \in A`$ then `h_i = 0`$. Otherwise, conditioning on the first move,
+
+```$
+h_i = 1 + \sum_{j} P_{ij}\, h_j,
+```
+
+where the `1`$ counts the step just taken and the sum averages the remaining time over where that step lands. This is one linear equation per state, and solving the system gives every expected hitting time at once. Absorption probabilities obey the same kind of system with the `1`$ removed: if `u_i`$ is the probability of ending at a chosen absorbing state starting from `i`$, then `u_i = \sum_j P_{ij}\, u_j`$, with boundary values `u_i = 1`$ at that target and `u_i = 0`$ at the other absorbing states. First-step analysis is the workhorse behind Problems 10.5 and 10.7, and it is how one computes expected waiting times, gambler's-ruin probabilities, and the expected running time of randomized algorithms.
 
 ## Applications of Markov Chains
 

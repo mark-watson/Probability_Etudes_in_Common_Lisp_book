@@ -62,7 +62,17 @@ The `\text{Beta}(a, b)`$ distribution has a density on the interval `[0, 1]`$:
 f(\theta) = \frac{\theta^{a-1} (1 - \theta)^{b-1}}{B(a, b)},
 ```
 
-where `B(a, b)`$ is the Beta function (the normalizing constant). The parameters `a`$ and `b`$ act as **pseudo-counts**: `a - 1`$ prior successes and `b - 1`$ prior failures. The mean and variance are:
+where `B(a, b)`$ is the Beta function (the normalizing constant). The parameters `a`$ and `b`$ act as **pseudo-counts**: `a - 1`$ prior successes and `b - 1`$ prior failures.
+
+The conjugacy is a one-line calculation. The likelihood of `s`$ successes and `f`$ failures is `p(\text{data} \mid \theta) = \theta^{s}(1 - \theta)^{f}`$, and the prior density is proportional to `\theta^{a-1}(1 - \theta)^{b-1}`$. Multiplying them,
+
+```$
+p(\theta \mid \text{data}) \propto \theta^{s}(1 - \theta)^{f} \cdot \theta^{a-1}(1 - \theta)^{b-1} = \theta^{(a+s)-1}(1 - \theta)^{(b+f)-1},
+```
+
+which is the unnormalized `\text{Beta}(a + s,\, b + f)`$ density. The two factors have the same functional form in `\theta`$, so their product stays in the Beta family; only the exponents move. This is exactly why the update is just addition of counts, and why we never need to touch the awkward normalizing constant `B(a, b)`$ while updating.
+
+The mean and variance are:
 
 ```$
 E[\theta] = \frac{a}{a + b}, \qquad \mathrm{Var}(\theta) = \frac{a b}{(a + b)^2 (a + b + 1)}.
@@ -89,6 +99,8 @@ Beta and Bernoulli are not the only conjugate pair. Several others show up frequ
 - **Gamma-Poisson**: if the data are Poisson counts with unknown rate, and the prior on the rate is Gamma, then the posterior is also Gamma.
 - **Dirichlet-Multinomial**: the multivariate generalization of Beta-Bernoulli, used for categorical distributions with more than two outcomes.
 
+These pairs are not a coincidence. A conjugate prior exists whenever the likelihood belongs to an **exponential family**, the class of distributions whose density can be written as `p(x \mid \theta) = h(x)\exp\!\big(\eta(\theta)\cdot T(x) - A(\theta)\big)`$ for a natural parameter `\eta`$, a sufficient statistic `T`$, and a log-partition function `A`$. The Bernoulli, Poisson, normal, and multinomial are all exponential families, which is why each has a tidy conjugate partner. The conjugate prior is built to share the algebraic form of the likelihood in `\theta`$, so that multiplying prior by likelihood updates the parameters and leaves the shape untouched. The sufficient statistic `T(x)`$ is what the pseudo-counts accumulate: for the Bernoulli it is the success count, which is why our update simply adds `s`$ and `f`$.
+
 Conjugacy is a mathematical convenience: it lets us do inference in closed form. In modern practice, however, we rarely have neat conjugate models. Bayesian inference in complex models usually uses Monte Carlo methods (Markov chain Monte Carlo, variational inference) to approximate the posterior. But conjugate models remain valuable for building intuition and as building blocks in larger hierarchical models.
 
 ## The Update Rule
@@ -104,6 +116,16 @@ The beauty of conjugacy is that the update rule is just addition. Each observed 
 ~~~~~~~~
 
 This is the same result whether we update all at once (batch) or one observation at a time (sequential). Conjugacy guarantees that the final posterior is the same either way. This equivalence of batch and sequential updating is a very useful property; it means we can process data as it arrives without waiting for it all to be collected.
+
+### The Posterior Mean as a Weighted Average
+
+The conjugate update has an interpretation that explains the prior-sensitivity behaviour we return to later. Write the prior mean as `\mu_0 = a/(a + b)`$ and the sample proportion, which is the maximum-likelihood estimate, as `\hat{\theta} = s/n`$ with `n = s + f`$. The posterior mean rearranges into a convex combination:
+
+```$
+E[\theta \mid \text{data}] = \frac{a + s}{a + b + n} = \underbrace{\frac{a + b}{a + b + n}}_{w}\,\mu_0 + \underbrace{\frac{n}{a + b + n}}_{1 - w}\,\hat{\theta}.
+```
+
+The posterior mean sits between the prior mean and the data's own estimate, with weights set by the prior strength `a + b`$ and the sample size `n`$. The Bayesian estimate is **shrunk** from the raw proportion toward the prior mean. When data are scarce (`n \ll a + b`$) the prior dominates; when data are plentiful (`n \gg a + b`$) the weight on the prior fades like `(a + b)/n`$ and the estimate reduces to the sample proportion. This one formula is the precise sense in which "the prior washes out," and it justifies reading `a + b`$ as a count of prior observations that compete on equal footing with the `n`$ real ones.
 
 ## Point Estimates and Credible Intervals
 

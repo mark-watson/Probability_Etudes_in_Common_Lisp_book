@@ -106,6 +106,20 @@ P(A \cap B \cap C) &= P(A) P(B) P(C).
 
 **Pairwise** independence (the first three conditions) does not imply mutual independence. There are classical examples of three events that are pairwise independent but for which the joint probability `P(A \cap B \cap C)`$ is not equal to the product `P(A) P(B) P(C)`$. Whenever a theorem or model calls for "independent" events, it almost always means mutually independent.
 
+### Conditional Independence
+
+Independence can hold or fail *within a sub-population*. Events `A`$ and `B`$ are **conditionally independent given `C`$** if
+
+```$
+P(A \cap B \mid C) = P(A \mid C) \, P(B \mid C).
+```
+
+Equivalently, `P(A \mid B \cap C) = P(A \mid C)`$: once we know `C`$, learning `B`$ adds nothing further about `A`$. This is a different statement from ordinary (marginal) independence, and neither one implies the other. Two events can be dependent overall yet independent inside every stratum of `C`$, and two events independent overall can become dependent once we condition on `C`$.
+
+Here is the intuition. Let `A`$ and `B`$ be the events that two different residents of a town test positive for the same infection. Marginally, `A`$ and `B`$ are dependent: a positive result for the first person raises our estimate that an outbreak is under way, which raises the chance the second tests positive too. But *given* the true prevalence `C`$ in the town, the two results are independent, because fixing the common cause that linked them removes the link.
+
+Conditional independence is the structural assumption behind the graphical models mentioned above. A **naive Bayes** classifier assumes the observed features are conditionally independent given the class label. A **hidden Markov model** assumes each observation is conditionally independent of the rest of the chain given its own hidden state. A **Bayesian network** is a compact encoding of a long list of such statements. Each assumption replaces one intractable joint distribution with a product of small factors, and the practical value of these models rests on it.
+
 ## The Law of Total Probability
 
 The **law of total probability** is a tool for decomposing a hard probability into simpler pieces. If `B_1, B_2, \ldots, B_n`$ partition the sample space (they are disjoint and cover everything), then for any event `A`$:
@@ -189,6 +203,32 @@ So a positive test means only about a 16.7% chance of actually having the diseas
 The medical-testing surprise illustrates the **base rate fallacy**, a widespread cognitive bias. When people evaluate evidence, they tend to focus on the likelihood `P(\text{evidence} \mid \text{hypothesis})`$ and neglect the prior `P(\text{hypothesis})`$. The base rate (the prior) is easy to overlook, yet it dominates the calculation when the hypothesis is rare.
 
 The same fallacy appears in criminal trials (the **prosecutor's fallacy**, in which the probability of the DNA match given innocence is confused with the probability of innocence given the DNA match), in security screening (a very accurate test can still generate mostly false alarms when hunting for extremely rare threats), and in many other high-stakes settings. Understanding Bayes' theorem is not just mathematically satisfying; it is a defense against widely-made real-world reasoning errors.
+
+## Simpson's Paradox
+
+Conditioning can reverse the direction of an association. A treatment can raise the recovery rate in *every* subgroup of patients and still lower the recovery rate in the pooled data. This reversal is **Simpson's paradox**, and it follows directly from the algebra of conditional probability.
+
+Write `R`$ for recovery, `T`$ for receiving the treatment, and `C`$ for a covariate, say a severe case versus a mild one. It is possible to have the treatment win in both strata,
+
+```$
+P(R \mid T \cap C) > P(R \mid T^c \cap C) \quad\text{and}\quad P(R \mid T \cap C^c) > P(R \mid T^c \cap C^c),
+```
+
+and yet lose overall,
+
+```$
+P(R \mid T) < P(R \mid T^c).
+```
+
+Nothing is wrong with the arithmetic. By the law of total probability the pooled rate is a weighted average of the two subgroup rates,
+
+```$
+P(R \mid T) = P(R \mid T \cap C)\,P(C \mid T) + P(R \mid T \cap C^c)\,P(C^c \mid T),
+```
+
+and the treated and untreated groups can carry very different weights `P(C \mid T)`$ and `P(C \mid T^c)`$. If the treatment went mostly to the severe cases, its overall rate is dragged down by that harder mix of patients even while it helps within each severity level.
+
+The lesson is that `P(R \mid T)`$ and `P(R \mid T \cap C)`$ answer different questions, and only the second holds the confounder `C`$ fixed. Deciding which one should guide a decision is the province of causal inference, a subject that begins exactly where this paradox does.
 
 ## Running the Example
 

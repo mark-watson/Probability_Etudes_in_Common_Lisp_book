@@ -73,6 +73,26 @@ Two events are called **disjoint** (or mutually exclusive) if their intersection
 
 In words, "not (`A`$ or `B`$)" is the same as "not `A`$ and not `B`$," and "not (`A`$ and `B`$)" is the same as "not `A`$ or not `B`$." These laws are extraordinarily useful when you find it easier to reason about complements.
 
+## The Event Space and the Probability Triple
+
+So far we have said that an event is any subset of `\Omega`$. For a finite sample space such as the 36 outcomes of two dice, that statement causes no trouble: we take *every* subset to be an event, and there are `2^{36}`$ of them. When the sample space is uncountable, though (for example the real line, which we meet in the chapter on continuous distributions), we cannot consistently assign a probability to *every* subset. Measure theory shows that pathological, non-measurable sets exist, and forcing a probability onto them breaks countable additivity. The fix is to name in advance the collection `\mathcal{F}`$ of subsets we agree to call events, and to require only that this collection stay closed under the operations we care about.
+
+Such a collection is a **`\sigma`$-algebra** (sigma-algebra) on `\Omega`$. It must satisfy three closure properties:
+
+1. `\Omega \in \mathcal{F}`$: the whole space is an event.
+2. If `A \in \mathcal{F}`$ then `A^c \in \mathcal{F}`$: closed under complement.
+3. If `A_1, A_2, \ldots \in \mathcal{F}`$ then `\bigcup_{i=1}^{\infty} A_i \in \mathcal{F}`$: closed under countable union.
+
+Closure under countable intersection then follows from De Morgan's laws. The pair `(\Omega, \mathcal{F})`$ is a **measurable space**, and the sets in `\mathcal{F}`$ are the **events**. A probability measure `P`$ is a function on the event space, `P : \mathcal{F} \to [0, 1]`$, not on arbitrary subsets. The three ingredients together,
+
+```$
+(\Omega, \mathcal{F}, P),
+```
+
+form a **probability space**, or probability triple. Every model in this book is a probability space, even where we do not write it out.
+
+For a finite or countable sample space we always take `\mathcal{F}`$ to be the collection of *all* subsets, the power set `2^{\Omega}`$, and the subtlety disappears. This covers every discrete example in the book. The machinery matters only when `\Omega`$ is uncountable, where the standard choice is the **Borel `\sigma`$-algebra**: the smallest `\sigma`$-algebra that contains all the open intervals. We name it now so that the word "event" has a precise meaning when we reach continuous distributions.
+
 ## The Kolmogorov Axioms
 
 In 1933, the Russian mathematician Andrey Kolmogorov formulated three axioms that serve as the foundation of modern probability theory. A **probability measure** `P`$ is a function that assigns a number to each event, satisfying these three rules:
@@ -82,6 +102,8 @@ In 1933, the Russian mathematician Andrey Kolmogorov formulated three axioms tha
 3. **Countable additivity**: If `A_1, A_2, A_3, \ldots`$ are pairwise disjoint events (no two of them share an outcome), then `P(A_1 \cup A_2 \cup \cdots) = \sum_i P(A_i)`$.
 
 These three axioms are remarkably compact, yet they generate the entire edifice of probability theory. Every theorem we will encounter in this book can be traced back to these three statements.
+
+**Why countable, and not merely finite, additivity?** Axiom 3 is stated for an infinite sequence of disjoint events, not just for a finite collection. Finite additivity, `P(A_1 \cup \cdots \cup A_n) = \sum_{i=1}^n P(A_i)`$, is the special case in which all but finitely many `A_i`$ are empty. The stronger countable version is what lets us pass to limits. It guarantees, for instance, that if a sequence of events shrinks toward the empty set then their probabilities shrink toward zero. Without this continuity we could not build the convergence theorems, the Law of Large Numbers and the Central Limit Theorem, that occupy the later chapters. Finitely additive measures do exist and are studied in their own right, but they lack the limiting behaviour that makes probability useful.
 
 ### Consequences of the Axioms
 
@@ -101,7 +123,13 @@ Several important properties follow immediately from the three axioms. Each one 
 P(A \cup B) = P(A) + P(B) - P(A \cap B).
 ```
 
-The term `P(A \cap B)`$ corrects for double-counting the outcomes that lie in both events. For three or more events, a longer inclusion-exclusion formula alternates signs; we will not need it in this book.
+The term `P(A \cap B)`$ corrects for double-counting the outcomes that lie in both events. For `n`$ events the pattern continues, alternating signs across intersections of every size:
+
+```$
+P\!\left(\bigcup_{i=1}^{n} A_i\right) = \sum_{i} P(A_i) - \sum_{i<j} P(A_i \cap A_j) + \sum_{i<j<k} P(A_i \cap A_j \cap A_k) - \cdots + (-1)^{n+1} P\!\left(\bigcap_{i=1}^{n} A_i\right).
+```
+
+Truncating this sum after any term yields the **Bonferroni inequalities**. Stop after the first sum and you get the union bound below; stop after the second and you get a lower bound; each further term tightens the estimate, and the partial sums bracket the true probability from alternating sides. These bounds are the everyday tool for controlling the probability of a union when the higher-order intersection terms are hard to compute.
 
 **Subadditivity (Boole's inequality).** For any events `A`$ and `B`$, whether disjoint or not:
 
@@ -109,7 +137,9 @@ The term `P(A \cap B)`$ corrects for double-counting the outcomes that lie in bo
 P(A \cup B) \leq P(A) + P(B).
 ```
 
-More generally, the probability of a union is at most the sum of the individual probabilities. This is sometimes called the **union bound** and is extremely useful in probabilistic analysis of algorithms.
+More generally, `P\!\left(\bigcup_i A_i\right) \leq \sum_i P(A_i)`$: the probability of a union is at most the sum of the individual probabilities. This is the **union bound**, and it is one of the most heavily used inequalities in the probabilistic analysis of algorithms, where one bounds the chance that *any* of many rare failures occurs by summing their individual chances.
+
+**Continuity of probability.** Countable additivity is equivalent to a continuity property. If events increase to a limit, `A_1 \subseteq A_2 \subseteq \cdots`$ with union `A`$, then `P(A_n) \to P(A)`$. Likewise if events decrease, `B_1 \supseteq B_2 \supseteq \cdots`$ with intersection `B`$, then `P(B_n) \to P(B)`$. We lean on this quietly every time we take a limit of probabilities, which in the later chapters is often.
 
 ## The Classical Definition of Probability
 
@@ -120,6 +150,14 @@ P(A) = \frac{|A|}{|\Omega|}.
 ```
 
 That is, the probability of event `A`$ is the number of favorable outcomes divided by the total number of outcomes. This is called the **classical definition of probability**, and it is what most people learn first.
+
+In the language of the event space above, the classical definition is one particular probability measure on a finite space: the **uniform measure**, which places equal mass `1/|\Omega|`$ on each outcome. It is a special case, not the general rule. It presupposes that the outcomes really are equally likely, which some symmetry of the experiment justifies (a fair die, a well-shuffled deck) but which fails the moment the symmetry breaks. A loaded die still has sample space `\{1,\ldots,6\}`$, yet its six probabilities are not all `1/6`$. For a general discrete model we assign a mass `p(\omega) \geq 0`$ to each outcome with `\sum_{\omega} p(\omega) = 1`$, and recover the probability of an event by summing the masses it contains:
+
+```$
+P(A) = \sum_{\omega \in A} p(\omega).
+```
+
+The classical formula is the case where every `p(\omega)`$ equals `1/|\Omega|`$. We meet the general form again in the next chapter as the probability mass function of a random variable.
 
 For two fair dice, each of the 36 outcomes is equally likely, so we can compute probabilities by counting:
 

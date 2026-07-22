@@ -18,6 +18,8 @@ The name "random variable" is slightly misleading. A random variable is not itse
 
 The **support** of a random variable is the set of values it can actually take. For the sum of two dice, the support is `\{2, 3, 4, \ldots, 12\}`$. For a coin flip encoded as `0`$ or `1`$, the support is `\{0, 1\}`$. A **discrete** random variable takes values in a countable set, often a finite set of integers.
 
+A technical requirement hides behind the word "function." For `P(X = x)`$ and `P(X \leq x)`$ to make sense, the sets `\{\omega : X(\omega) = x\}`$ and `\{\omega : X(\omega) \leq x\}`$ must be events, that is, members of the `\sigma`$-algebra `\mathcal{F}`$ from the previous chapter. A function `X : \Omega \to \mathbb{R}`$ with this property is called **measurable**, and only measurable functions qualify as random variables. In the discrete case, where `\mathcal{F}`$ is the full power set, every function is measurable and the requirement is automatic, so we will not raise it again until continuous distributions make it matter.
+
 Any function of a random variable is again a random variable. If `X`$ is a random variable and `g`$ is a function, then `g(X)`$ assigns `g(X(\omega))`$ to each outcome `\omega`$. So `X^2, |X|, e^{X}`$, and `X \bmod 2`$ are all random variables built from `X`$.
 
 ## Indicator Random Variables
@@ -157,6 +159,22 @@ For a sum of two random variables:
 
 where `\mathrm{Cov}(X, Y) = E[(X - E[X])(Y - E[Y])]`$ is the **covariance**. When `X`$ and `Y`$ are independent, the covariance is zero and `\mathrm{Var}(X + Y) = \mathrm{Var}(X) + \mathrm{Var}(Y)`$. This additivity of variance for independent variables is one of the reasons independence is so useful.
 
+The covariance carries the product of the units of `X`$ and `Y`$, which makes its numerical value hard to interpret on its own. Dividing by the two standard deviations strips the units and yields the **correlation coefficient**:
+
+```$
+\rho(X, Y) = \frac{\mathrm{Cov}(X, Y)}{\sigma_X \, \sigma_Y}.
+```
+
+The Cauchy-Schwarz inequality forces `-1 \leq \rho \leq 1`$, with `\rho = \pm 1`$ exactly when `Y`$ is an affine function of `X`$. A correlation of `0`$ means `X`$ and `Y`$ are **uncorrelated**. Independence implies zero correlation, but the converse fails: uncorrelated variables can still be dependent, because `\rho`$ detects only *linear* association.
+
+For a sum of many variables the two-term rule generalizes to
+
+```$
+\mathrm{Var}\!\left(\sum_{i=1}^{n} X_i\right) = \sum_{i=1}^{n} \mathrm{Var}(X_i) + 2 \sum_{i < j} \mathrm{Cov}(X_i, X_j).
+```
+
+When the variables are pairwise uncorrelated, every cross term drops out and the variance of the sum is just the sum of the variances. This is the fact that makes the variance of a sample mean shrink like `1/n`$, the engine of the Law of Large Numbers two chapters from now.
+
 ## Standardization
 
 Given a random variable `X`$ with mean `\mu`$ and standard deviation `\sigma`$, its **standardized** form is:
@@ -166,6 +184,30 @@ Z = \frac{X - \mu}{\sigma}.
 ```
 
 By construction, `Z`$ has mean `0`$ and variance `1`$. Standardization lets us compare distributions on a common scale and is essential for stating limit theorems like the Central Limit Theorem in a clean form.
+
+## Moments and the Moment Generating Function
+
+The mean and variance are the first two members of a larger family. The `k`$-th **moment** of `X`$ is `E[X^k]`$, and the `k`$-th **central moment** is `E[(X - \mu)^k]`$. The mean is the first moment; the variance is the second central moment. The third and fourth central moments, once standardized, describe the shape of a distribution beyond its location and spread:
+
+```$
+\text{skewness} = \frac{E[(X-\mu)^3]}{\sigma^3}, \qquad \text{kurtosis} = \frac{E[(X-\mu)^4]}{\sigma^4}.
+```
+
+Skewness measures asymmetry: a positive value signals a long right tail. Kurtosis measures how heavy the tails are relative to a normal distribution, whose kurtosis is `3`$.
+
+All of these moments are packaged together by the **moment generating function** (MGF):
+
+```$
+M_X(t) = E[e^{tX}] = \sum_{x} e^{tx} \, p(x),
+```
+
+defined for those `t`$ where the sum is finite. The name comes from a small miracle: differentiating `M_X`$ at `t = 0`$ reproduces the moments one at a time,
+
+```$
+M_X^{(k)}(0) = E[X^k].
+```
+
+This follows from expanding `e^{tX} = \sum_k (tX)^k / k!`$ and taking the expectation term by term. The MGF has two properties that make it a workhorse of the later chapters. First, it turns sums of *independent* variables into products: if `X`$ and `Y`$ are independent then `M_{X+Y}(t) = M_X(t)\,M_Y(t)`$, because the expectation of a product of independent quantities factors. Second, it determines the distribution uniquely: two random variables with the same MGF on an interval around `0`$ have the same distribution. Together these facts let us identify the distribution of a sum by multiplying MGFs, and they underlie one standard proof of the Central Limit Theorem. A close relative, the **characteristic function** `\varphi_X(t) = E[e^{itX}]`$, exists for *every* distribution even when the MGF does not, and is the tool of choice in the rigorous theory.
 
 ## Concentration Inequalities
 
