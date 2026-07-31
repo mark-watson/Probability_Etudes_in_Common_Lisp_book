@@ -4,7 +4,7 @@ A probabilistic program describes a generative model in ordinary code: it draws 
 
 This chapter builds a small but complete PPL in Common Lisp. It provides a macro DSL for declaring models and three inference engines written from scratch: random-walk Metropolis-Hastings, Hamiltonian Monte Carlo with automatic differentiation, and mean-field variational inference. A terminal REPL and text plots let you inspect the results.
 
-The example program for this chapter is in the file **11_probabilistic-DSL.lisp**.
+The example program for this chapter is in the file **11_probabilistic_dsl.lisp**.
 
 ## What Inference Computes
 
@@ -464,7 +464,7 @@ with `B`$ the between-chain variance and `W`$ the average within-chain variance.
 Load the file and it drops you into the PPL REPL:
 
 ```
-rlwrap sbcl --load 11_probabilistic-DSL.lisp
+rlwrap sbcl --load 11_probabilistic_dsl.lisp
 ```
 
 Type `demo` at the `ppl>` prompt for a guided tour, or fit a model directly. The `(demo)` function fits the coin and the Normal models, plots their posteriors, and compares all three engines against the exact Beta answer. Because the random state is freshly seeded each session, your numbers will differ slightly from those below, but the patterns hold.

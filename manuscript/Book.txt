@@ -12,3 +12,4 @@ bayesian_inference.md
 markov_chains.md
 probabilistic_dsl.md
 book_wrapup.md
+further_reading.md

@@ -10,7 +10,7 @@ A solid grasp of probability theory gives you the foundation to understand all o
 
 ## What This Book Covers
 
-We cover the core concepts of a one-semester probability course, organized into ten example programs:
+We cover the core concepts of a one-semester probability course, organized into eleven example programs:
 
 1. **Basic Probability** - sample spaces, events, and the Kolmogorov axioms
 2. **Conditional Probability** - conditioning, independence, and Bayes' theorem
@@ -22,6 +22,7 @@ We cover the core concepts of a one-semester probability course, organized into 
 8. **Monte Carlo Methods** - estimating quantities by random sampling
 9. **Bayesian Inference** - updating beliefs as evidence arrives
 10. **Markov Chains** - sequences of random states with memoryless transitions
+11. **A Probabilistic Programming Language** - a small Bayesian inference engine built from scratch, with Metropolis-Hastings, Hamiltonian Monte Carlo, and variational inference
 
 Each chapter presents the theory in plain language, then walks through the corresponding Common Lisp program that demonstrates the concepts in action.
 

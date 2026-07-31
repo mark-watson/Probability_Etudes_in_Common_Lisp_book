@@ -202,9 +202,24 @@ Iterating v_{t+1} = v_t P:
   steps=100 : [0.6667, 0.3333]
 
 Stationary distribution (by long iteration, t=10000):
-  [0.6668, 0.3334]
-Stationary distribution (exact, solving pi = pi P):
   [0.6667, 0.3333]
+Stationary distribution (exact, 2-state closed form):
+  [0.6667, 0.3333]
+Stationary distribution (general linear solve, any size):
+  [0.6667, 0.3333]
+
+Convergence to stationarity (total variation distance to pi):
+  t=0    TV=0.3333
+  t=1    TV=0.1333
+  t=2    TV=0.0533
+  t=3    TV=0.0213
+  t=4    TV=0.0085
+  t=5    TV=0.0034
+  t=10   TV=0.0000
+Mixing time (TV <= 0.01) starting from [1,0]: 4 steps
+
+Simulating one 100000-step trajectory (start Sunny):
+  empirical P(Sunny) = 0.6627 (stationary 0.6667)
 
 The chain forgets its initial state and converges to the
 unique stationary distribution (ergodic theorem for Markov chains).
@@ -212,7 +227,9 @@ unique stationary distribution (ergodic theorem for Markov chains).
 
 Watch the distribution evolve. We start certainly Sunny: [1, 0]. After one step, there is an 80% chance of Sunny and 20% of Rainy. After two steps, the distribution has shifted further: [0.72, 0.28]. By step 10, the distribution has settled at approximately [2/3, 1/3], and it stays there forever.
 
-The stationary distribution is [2/3, 1/3]: in the long run, about 67% of days are Sunny and 33% are Rainy. Both methods of finding it agree. The chain has "forgotten" its starting state and settled into equilibrium.
+The stationary distribution is [2/3, 1/3]: in the long run, about 67% of days are Sunny and 33% are Rainy. All three methods of finding it agree: long iteration, the two-state closed form, and a general linear solve that works for any number of states (it sets up `(P^T - I)\pi = 0`$ with the last row replaced by the normalization `\sum_i \pi_i = 1`$ and solves by Gaussian elimination).
+
+The program also measures *how fast* the chain reaches equilibrium. The total variation distance to `\pi`$ falls by a factor of `0.4`$ at every step, which is exactly the second eigenvalue of `P`$ predicted by the spectral view above, and the mixing time to get within `0.01`$ is `4`$ steps. A separate `100{,}000`$-step simulation of a single trajectory spends about `2/3`$ of its time in the Sunny state, the same `\pi_{\text{Sunny}}`$ from a completely different computation (the exact fraction varies from run to run).
 
 ## Hitting Times and First-Step Analysis
 

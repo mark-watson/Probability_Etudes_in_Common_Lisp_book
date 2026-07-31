@@ -193,6 +193,8 @@ True theta = 0.7. As n grows the posterior mean converges to the
 true value and the variance shrinks to 0 (Bernoulli's theorem).
 ```
 
+Because the program simulates fresh coin flips on each run, the exact counts and posterior values here are one representative realization. Your numbers will differ, but the pattern is the same every time: the posterior mean drifts toward `0.7`$ and the variance shrinks.
+
 Watch what happens as data accumulates:
 
 - **Prior**: `\text{Beta}(1, 1)`$ with mean `0.5`$ and variance `0.083`$. We know nothing yet.

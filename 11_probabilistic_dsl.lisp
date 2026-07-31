@@ -1,4 +1,4 @@
-;;;; 11_probabilistic-DSL.lisp
+;;;; 11_probabilistic_dsl.lisp
 ;;;; An embedded probabilistic programming language (a "PPL") in Common Lisp.
 ;;;; Define Bayesian models with a small macro DSL, then fit them with three
 ;;;; inference engines written from scratch: Metropolis-Hastings, Hamiltonian
@@ -6,8 +6,8 @@
 ;;;; inference. A terminal REPL and text plots let you explore posteriors.
 ;;;;
 ;;;; Load it and it drops you into the PPL REPL:
-;;;;   rlwrap sbcl --load 11_probabilistic-DSL.lisp
-;;;;   rlwrap lw    -load 11_probabilistic-DSL.lisp
+;;;;   rlwrap sbcl --load 11_probabilistic_dsl.lisp
+;;;;   rlwrap lw    -load 11_probabilistic_dsl.lisp
 ;;;; (rlwrap gives line editing and history.) Type `help` at the ppl> prompt.
 
 ;; ============================================================================
@@ -530,7 +530,8 @@
 ;; ----------------------------------------------------------------------------
 
 (defun engine-hmc (model &rest args)
-  "HMC with leapfrog integration. Uses AD for the exact gradient of log g."
+  "HMC with leapfrog integration. Uses AD for the exact gradient of log g.
+   Origins: Duane, Kennedy, Pendleton, and Roweth (1987); Neal (2011)."
   (let* ((iters  (getf args :iters 2500))
          (burn   (getf args :burn 1000))
          (eps0   (getf args :step 0.1d0))
@@ -614,7 +615,8 @@
 (defun adam-init (dim lr) (make-adam :m (make-dvec dim) :v (make-dvec dim) :lr lr))
 
 (defun adam-ascend! (state params grad)
-  "Take one Adam ascent step: PARAMS += lr * m_hat / (sqrt(v_hat)+eps)."
+  "Take one Adam ascent step: PARAMS += lr * m_hat / (sqrt(v_hat)+eps).
+   Adam optimizer of Kingma and Ba (2015)."
   (let ((tt (1+ (adam-iter state))) (m (adam-m state)) (v (adam-v state))
         (lr (adam-lr state)) (b1 0.9d0) (b2 0.999d0) (eps 1d-8))
     (setf (adam-iter state) tt)
@@ -628,7 +630,8 @@
 
 (defun engine-vi (model &rest args)
   "Fit a factorized Normal q(u) by maximizing the ELBO with reparameterized
-   gradients (AD) and Adam. Then draw from q to summarize the posterior."
+   gradients (AD) and Adam. Then draw from q to summarize the posterior.
+   This is the ADVI recipe of Kucukelbir, Tran, Ranganath, Gelman, Blei (2017)."
   (let* ((iters  (getf args :iters 3000))
          (lr     (getf args :step 0.05d0))
          (mc     (getf args :mc 4))
@@ -745,7 +748,8 @@
     (/ s (* n var))))
 
 (defun ess (series)
-  "Effective sample size from Geyer's initial positive autocorrelation sum."
+  "Effective sample size from Geyer's initial positive autocorrelation sum
+   (Geyer 1992, 'Practical Markov Chain Monte Carlo')."
   (let* ((n (length series)) (m (mean-of series))
          (var (/ (reduce #'+ (map 'list (lambda (x) (expt (- x m) 2)) series))
                  n)))
@@ -759,7 +763,8 @@
           (clampd (/ n (+ 1.0d0 (* 2.0d0 s))) 1.0d0 (coerce n 'double-float))))))
 
 (defun gelman-rubin (post name)
-  "Gelman-Rubin R-hat for parameter NAME across chains. ~1.0 signals mixing."
+  "Gelman-Rubin R-hat for parameter NAME across chains. ~1.0 signals mixing.
+   Gelman and Rubin (1992); see Vehtari et al. (2021) for the modern form."
   (let* ((j (post-index post name))
          (chs (posterior-chains post))
          (series (mapcar
@@ -799,7 +804,7 @@
     (let* ((col (post-column post name))
            (sorted (sort (copy-seq col) #'<)))
       (format stream "  ~8a ~10,4f ~10,4f ~10,4f ~10,4f ~10,4f ~8,0f~@[ ~7,3f~]~%"
-              name (mean-of col) (sd-of col)
+              (string-downcase name) (mean-of col) (sd-of col)
               (quantile sorted 0.025d0) (quantile sorted 0.5d0)
               (quantile sorted 0.975d0) (ess col)
               (when (>= (length (posterior-chains post)) 2)
@@ -855,7 +860,7 @@
 (defun plot-hist (post name &rest opts)
   "Posterior histogram for parameter NAME."
   (apply #'ascii-hist (post-column post name)
-         :title (format nil "posterior of ~a" name) opts))
+         :title (format nil "posterior of ~(~a~)" name) opts))
 
 (defun plot-density (post name &rest opts)
   "Alias for plot-hist: a text density of parameter NAME."
@@ -864,14 +869,14 @@
 (defun plot-trace (post name &rest opts)
   "Trace plot of parameter NAME over sampling iterations."
   (apply #'ascii-line (post-column post name)
-         :title (format nil "trace of ~a" name) opts))
+         :title (format nil "trace of ~(~a~)" name) opts))
 
 (defun plot-autocorr (post name &key (max-lag 30))
   "Autocorrelation bars for parameter NAME up to MAX-LAG."
   (let* ((s (post-column post name)) (m (mean-of s))
          (var (/ (reduce #'+ (map 'list (lambda (x) (expt (- x m) 2)) s))
                  (length s))))
-    (format t "autocorrelation of ~a~%" name)
+    (format t "autocorrelation of ~(~a~)~%" name)
     (loop for lag from 0 to max-lag
           for rho = (if (zerop var) 0.0d0 (autocorr s m var lag))
           do (format t "  lag ~3d ~6,3f |~a~%" lag rho

@@ -108,13 +108,8 @@
         (multiple-value-bind (pa pb) (bayesian-update prior-a prior-b
                                                        successes failures)
           (print-beta pa pb "Posterior     "))
-        ;; Sequential update in chunks to show belief concentrating.
+        ;; Sequential update showing the belief concentrating at each stage.
         (format t "~%Sequential updates (belief concentrates as data arrives):~%")
-        (let ((a prior-a) (b prior-b))
-          (dolist (obs data)
-            (if (= obs 1) (incf a) (incf b)))
-          (print-beta a b "After all 100 "))
-        ;; Show intermediate stages.
         (let ((a prior-a) (b prior-b) (count 0))
           (dolist (obs data)
             (if (= obs 1) (incf a) (incf b))

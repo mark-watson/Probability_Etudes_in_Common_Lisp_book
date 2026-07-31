@@ -96,7 +96,7 @@
         (format t "  Prior P(D)           = ~a = ~4f~%" p-disease (float p-disease))
         (format t "  Sensitivity P(+|D)   = ~a = ~4f~%" p-pos-given-disease
                 (float p-pos-given-disease))
-        (format t "  False-positive P(+|~aD) = ~a = ~4f~%" (char "no " 0)
+        (format t "  False-positive P(+|no D) = ~a = ~4f~%"
                 p-pos-given-healthy (float p-pos-given-healthy))
         (format t "  Total P(+)           = ~a = ~4f~%" p-positive (float p-positive))
         (format t "  Posterior P(D | +)   = ~a = ~4f~%" posterior (float posterior))

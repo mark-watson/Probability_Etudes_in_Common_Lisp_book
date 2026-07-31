@@ -68,7 +68,7 @@ The plain CLT is a limit statement: it does not tell us how large `n`$ has to be
 \sup_{x} |F_n(x) - \Phi(x)| \leq \frac{C \, \rho}{\sigma^3 \sqrt{n}},
 ```
 
-for some absolute constant `C`$ (the best known value is roughly `0.4748`$) and where `\rho = E[|X_i - \mu|^3]`$. The error shrinks as `1/\sqrt{n}`$, the same rate we saw in the Law of Large Numbers. Doubling `n`$ improves the CLT approximation by a factor of `\sqrt{2}`$, roughly `1.41`$.
+for some absolute constant `C`$ (the best known universal value is about `0.47`$; the bound `0.4690`$ is due to Shevtsova, 2011) and where `\rho = E[|X_i - \mu|^3]`$. The error shrinks as `1/\sqrt{n}`$, the same rate we saw in the Law of Large Numbers. Doubling `n`$ improves the CLT approximation by a factor of `\sqrt{2}`$, roughly `1.41`$.
 
 The key qualitative message is that the approximation works better when:
 
@@ -112,24 +112,36 @@ CLT predicts for the sample mean M_n:
   E[M_n]        = mu        =  0.5
   Var(M_n)      = sigma^2/n = 0.0050
 Empirical from simulation:
-  mean of M_n's = 0.5011
-  var  of M_n's = 0.0050
+  mean of M_n's = 0.4996
+  var  of M_n's = 0.0051
   (These should be close to the CLT predictions.)
 
 Histogram of sample means (bell-shaped = CLT at work):
-   0.325 | **
-   0.375 | *******
-   0.425 | ****************************
-   0.475 | ********************************
-   0.525 | **************************************************
-   0.575 | **********************
-   0.625 | **************
-   0.675 | **
+   0.274 | *
+   0.300 | *
+   0.328 | ***
+   0.355 | ****
+   0.382 | *******
+   0.409 | **********************
+   0.435 | ******************
+   0.463 | **********************
+   0.490 | **************************************************
+   0.516 | *************************
+   0.544 | *********************
+   0.571 | ********************************
+   0.598 | *********
+   0.625 | ******
+   0.652 | ******
+   0.679 | *
+   0.706 | *
+   0.733 | *
+   0.760 | *
+   0.787 | *
 ```
 
 Look at that histogram. It is bell-shaped, even though the source distribution has only two possible values. The CLT has transformed a highly non-normal distribution into a nearly normal one, just by averaging `50`$ independent draws.
 
-The empirical mean (`0.5011`$) and variance (`0.0050`$) are very close to the CLT predictions of `0.5`$ and `0.005`$. The small deviation in the mean is normal sampling variability.
+The empirical mean (`0.4996`$) and variance (`0.0051`$) are very close to the CLT predictions of `0.5`$ and `0.005`$. The small deviation in the mean is normal sampling variability. The program reseeds its random state on each run, so your exact numbers and bar heights will differ, but the bell shape and the match to the predictions are the same every time.
 
 ## The Theoretical Basis for Statistical Practice
 

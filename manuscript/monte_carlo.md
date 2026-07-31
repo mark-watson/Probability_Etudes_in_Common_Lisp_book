@@ -145,7 +145,7 @@ Note: the error scales roughly as 1/sqrt(n). Doubling n
 shrinks the standard error by ~0.707x; halving the error needs 4x n.
 ```
 
-With `1{,}000`$ points, the estimate is off by about `0.1`$. With `1{,}000{,}000`$ points, the error drops to about `0.003`$. The standard error column tracks the actual error well: the error is typically within `1`$ or `2`$ standard errors of the true value.
+With `1{,}000`$ points, the estimate is off by about `0.1`$. With `1{,}000{,}000`$ points, the error drops to about `0.003`$. The standard error column tracks the actual error well: the error is typically within `1`$ or `2`$ standard errors of the true value. The random state is reseeded on each run, so your exact estimates will differ, while the `1/\sqrt{n}`$ shrinkage of the standard error stays the same.
 
 ## The Cost of Monte Carlo
 
@@ -182,6 +182,18 @@ Buffon's original problem was to estimate the probability that a needle of lengt
 ```
 
 This is an even older and just as valid Monte Carlo estimator for `\pi`$ as the disk method. It has different variance properties and is a nice teaching example.
+
+The program implements both the antithetic-variates trick and Buffon's needle, then compares three estimators by repeating each one `200`$ times and reporting the empirical standard deviation of the estimates:
+
+```
+=== Variance Reduction and Buffon's Needle ===
+  Comparing estimators over 200 repetitions of 5000 points each:
+    plain disk       mean= 3.1390  empirical SD= 0.0231
+    antithetic disk  mean= 3.1400  empirical SD= 0.0202
+    Buffon's needle  mean= 3.1373  empirical SD= 0.0334
+```
+
+The antithetic estimator has a smaller standard deviation than the plain one at the same cost, so pairing each `(u, v)`$ with its reflection `(1 - u, 1 - v)`$ genuinely reduces variance (Problem 8.6). Buffon's needle, using the same number of random draws, has the largest standard deviation of the three: a valid estimator but a less efficient one (Problem 8.4). The exact numbers vary from run to run.
 
 ## Applications Beyond Pi
 

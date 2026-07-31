@@ -22,7 +22,9 @@ The **Central Limit Theorem** revealed why the normal distribution appears every
 
 **Bayesian inference** taught us to learn from data by updating beliefs. Starting from a uniform prior, we watched the posterior distribution concentrate around the true parameter value as evidence accumulated. The Beta-Bernoulli conjugate pair made the updates as simple as counting.
 
-Finally, **Markov chains** modeled sequential randomness with the Markov property. We saw a weather model converge to its stationary distribution from any starting state, illustrating the ergodic theorem.
+**Markov chains** modeled sequential randomness with the Markov property. We saw a weather model converge to its stationary distribution from any starting state, illustrating the ergodic theorem.
+
+Finally, we built **a probabilistic programming language**. It ties the earlier ideas together: a model is declared with a small macro DSL, and three inference engines fit it from the same unnormalized log posterior. Metropolis-Hastings, Hamiltonian Monte Carlo, and variational inference each return the posterior in a different way. The Metropolis-Hastings sampler is a Markov chain whose stationary distribution is the posterior, so the R-hat and ESS diagnostics measure the same mixing behavior the Markov chain chapter analyzed.
 
 ## Where To Go From Here
 

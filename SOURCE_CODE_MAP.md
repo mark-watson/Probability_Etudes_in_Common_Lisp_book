@@ -20,4 +20,5 @@ files, not directories. Chapters are listed in reading order (see
 | `monte_carlo.md`               | `08_monte_carlo.lisp`            |
 | `bayesian_inference.md`        | `09_bayesian_inference.lisp`     |
 | `markov_chains.md`             | `10_markov_chains.lisp`          |
+| `probabilistic_dsl.md`         | `11_probabilistic_dsl.lisp`      |
 | `book_wrapup.md`               | (back matter, no code)           |

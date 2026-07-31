@@ -7,13 +7,30 @@ mechanics.
 
 ## Running the Examples
 
-Each file is self-contained. Using LispWorks (invoked here as `lw`):
+Examples 01 through 10 are self-contained batch programs: load one and it runs
+its demonstration. Using LispWorks (invoked here as `lw`):
 
 ```
 lw -eval "(progn (load \"01_basic_probability.lisp\") (quit))"
 ```
 
+or SBCL:
+
+```
+sbcl --script 01_basic_probability.lisp
+```
+
 Replace `01_basic_probability` with any of the example names below.
+
+Example 11 is different: it is an interactive REPL, not a batch script. Load it
+and type `demo` at the `ppl>` prompt:
+
+```
+rlwrap sbcl --load 11_probabilistic_dsl.lisp
+```
+
+The source and its comments assume a UTF-8 terminal, since a few comments use
+symbols such as Σ and π.
 
 ## Examples
 
@@ -103,6 +120,17 @@ shows the distribution converging to the unique stationary distribution from
 any starting state — both by long-run iteration and by solving `π = πP`
 exactly.
 
+### 11 — A Probabilistic Programming Language
+**File:** `11_probabilistic_dsl.lisp`
+
+A small but complete probabilistic programming language. It provides a macro
+DSL (`defmodel`, `sample`, `observe`) for declaring Bayesian models and three
+inference engines written from scratch: random-walk Metropolis-Hastings,
+Hamiltonian Monte Carlo with forward-mode automatic differentiation, and
+mean-field variational inference. A terminal REPL, text plots, and the ESS and
+R-hat diagnostics let you fit and inspect the built-in coin, mean-variance, and
+linear-regression models. Unlike the other examples, this one is interactive.
+
 ## Concepts Covered
 
 | Example | Key Concepts |
@@ -117,3 +145,4 @@ exactly.
 | 08 | Monte Carlo estimation, standard error, convergence rate |
 | 09 | Bayesian inference, conjugate priors, posterior updating |
 | 10 | Markov chains, transition matrices, stationary distribution, ergodicity |
+| 11 | Probabilistic programming, MCMC, Hamiltonian Monte Carlo, variational inference, automatic differentiation |

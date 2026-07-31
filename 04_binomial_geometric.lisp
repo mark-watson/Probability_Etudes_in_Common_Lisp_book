@@ -86,15 +86,34 @@
     (format t "    P(Y > n)          = ~a = ~4f~%" (geometric-tail p n)
             (float (geometric-tail p n)))))
 
+(defun factorial (k)
+  "k! for a small non-negative integer k."
+  (if (<= k 1) 1 (* k (factorial (1- k)))))
+
+(defun poisson-pmf (lambda-rate k)
+  "P(X = k) for X ~ Poisson(lambda): lambda^k e^{-lambda} / k!.
+   The Poisson is the limit of Binomial(n, p) as n -> infinity and p -> 0 with
+   the product n p = lambda held fixed, so it models rare events over many
+   trials (decays per second, typos per page, arrivals per minute)."
+  (/ (* (expt lambda-rate k) (exp (- lambda-rate)))
+     (factorial k)))
+
+(defun binomial-mode (n p)
+  "The most likely value of Binomial(n, p): floor((n + 1) p). When (n+1)p is an
+   integer both it and (n+1)p - 1 are modes; this returns the lower one."
+  (floor (* (+ n 1) p)))
+
 (defun main ()
   (format t "=== Binomial Distribution: n=10, p=0.3 ===~%")
   (let ((n 10) (p 3/10))
     (format t "  E[X] = n p = ~a,  Var(X) = n p (1-p) = ~a~%"
             (* n p) (* n p (- 1 p))))
+  ;; With a rational p the exact PMF is an unwieldy fraction such as
+  ;; 282475249/10000000000, so we print the float value for readability.
   (let ((n 10) (p 3/10))
     (loop for k from 0 to n do
-      (format t "  P(X=~a) = ~a = ~4f   CDF F(~a) = ~a~%"
-              k (binomial-pmf n p k) (float (binomial-pmf n p k))
+      (format t "  P(X=~a) = ~6,4f   CDF F(~a) = ~6,4f~%"
+              k (float (binomial-pmf n p k))
               k (float (binomial-cdf n p k)))))
   (format t "~%=== Geometric Distribution: p=0.2 ===~%")
   (let ((p 1/5))
@@ -106,6 +125,19 @@
               k (geometric-pmf p k) (float (geometric-pmf p k))
               k (geometric-tail p k) (float (geometric-tail p k)))))
   (format t "~%=== Memoryless Property ===~%")
-  (demonstrate-memoryless-property 1/5 3 2))
+  (demonstrate-memoryless-property 1/5 3 2)
+
+  (format t "~%=== Poisson Limit of the Binomial (lambda = n p = 3) ===~%")
+  (format t "  As n grows with n p = 3 fixed, Binomial(n, 3/n) -> Poisson(3).~%")
+  (format t "   k   Binom(50,0.06)   Binom(500,0.006)   Poisson(3)~%")
+  (loop for k from 0 to 6 do
+    (format t "  ~2a   ~12,5f     ~12,5f      ~10,5f~%"
+            k (float (binomial-pmf 50 (/ 3 50) k))
+            (float (binomial-pmf 500 (/ 3 500) k))
+            (poisson-pmf 3.0d0 k)))
+
+  (format t "~%=== Binomial Mode ===~%")
+  (format t "  Most likely k for Binomial(10, 0.3) = ~a (the peak of the PMF above)~%"
+          (binomial-mode 10 3/10)))
 
 (main)

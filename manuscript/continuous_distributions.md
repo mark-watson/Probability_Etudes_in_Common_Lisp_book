@@ -70,6 +70,35 @@ With `100{,}000`$ subintervals, this method is accurate enough for our purposes.
 
 More sophisticated methods (Simpson's rule, Gaussian quadrature, adaptive quadrature) achieve much higher accuracy for the same number of function evaluations, but the midpoint rule is easy to code, easy to reason about, and good enough for pedagogy. Numerical integration is the standard way to answer questions like "what is P(a <= X <= b)?" for any distribution whose CDF is not available in closed form.
 
+To make the accuracy difference concrete, the program also includes **Simpson's rule**, which fits a parabola to each pair of subintervals and has error `O(1/N^4)`$ instead of `O(1/N^2)`$:
+
+{lang="lisp",linenos=off}
+~~~~~~~~
+(defun integrate-simpson (f a b &optional (n 100000))
+  "Composite Simpson's rule: error O(1/N^4)."
+  (let* ((n (if (evenp n) n (1+ n)))
+         (h (/ (- b a) n))
+         (s (+ (funcall f a) (funcall f b))))
+    (loop for i from 1 below n
+          do (incf s (* (if (oddp i) 4.0d0 2.0d0) (funcall f (+ a (* i h))))))
+    (* (/ h 3.0d0) s)))
+~~~~~~~~
+
+Integrating `e^x`$ over `[0, 1]`$ (exact value `e - 1`$) exposes the two convergence rates. Each time `N`$ doubles, the midpoint error falls by about `4`$ and the Simpson error by about `16`$:
+
+```
+=== Numerical Integration: Midpoint vs Simpson ===
+  Integrating e^x over [0, 1] (exact = e - 1 = 1.718282):
+    n     midpoint error   Simpson error
+    4           4.467d-3        3.701d-5
+    8           1.118d-3        2.326d-6
+    16          2.796d-4        1.456d-7
+    32          6.992d-5        9.103d-9
+  Midpoint error falls ~4x per doubling (O(1/N^2)); Simpson ~16x (O(1/N^4)).
+```
+
+(The standard normal PDF is a poor test case for this comparison. Because that density and all its derivatives are essentially zero at the ends of a wide integration interval, the plain midpoint rule already converges extremely fast, and Simpson shows no clear advantage. The comparison needs an integrand with nonzero endpoint behaviour, such as `e^x`$.)
+
 ## The Uniform Distribution
 
 The **uniform distribution** on the interval `[a, b]`$ has a constant density: `f(x) = \frac{1}{b - a}`$ for `a \leq x \leq b`$, and `0`$ elsewhere. Every value in the interval is equally likely.
@@ -130,8 +159,32 @@ The exponential distribution is closely related to the **Poisson distribution** 
   E[X] (numeric) =  0.5
   Var(X) (formula) = 0.25
   P(X <= 1) = .865 (CDF) vs .865 (numeric)
-  Total probability (should be 1.0):  1.0
+  Total probability (should be 1.0): .9999
 ```
+
+The total probability comes out as `.9999`$ rather than a clean `1.0`$ because we integrate only over `[0, 20]`$ and the midpoint rule slightly underestimates the integral of a convex decreasing density. The missing mass is `e^{-40} \approx 4 \times 10^{-18}`$, so the shortfall we see is numerical, not a gap in the tail.
+
+### Sampling by Inverse Transform
+
+The uniform distribution is also the raw material for generating samples from other distributions. The **inverse-transform method** takes a `U \sim \text{Uniform}(0, 1)`$ draw and returns `F^{-1}(U)`$, which then has CDF `F`$. For the exponential, `F(x) = 1 - e^{-\lambda x}`$ inverts to `x = -\ln(1 - U)/\lambda`$:
+
+{lang="lisp",linenos=off}
+~~~~~~~~
+(defun sample-exponential (lambda-rate)
+  "Draw Exponential(lambda) by inverse transform: -ln(1-U)/lambda."
+  (/ (- (log (- 1.0d0 (random 1.0d0 *rng-state*)))) lambda-rate))
+~~~~~~~~
+
+Drawing `100{,}000`$ samples this way and computing their mean and variance recovers `1/\lambda`$ and `1/\lambda^2`$ (Problem 5.8):
+
+```
+=== Inverse-Transform Sampling: Exponential(lambda=2) ===
+  Drew 100000 samples via -ln(1-U)/lambda.
+  empirical mean = .50123  (1/lambda   =    0.5)
+  empirical var  = .25369  (1/lambda^2 =   0.25)
+```
+
+The exact figures shift from run to run because the samples are random, but they cluster around `0.5`$ and `0.25`$.
 
 ## The Normal Distribution
 
@@ -154,22 +207,24 @@ The normal distribution is universal: it appears as the limiting distribution of
        (* sigma (sqrt (* 2.0 pi))))))
 ~~~~~~~~
 
-The normal CDF does not have a closed form in terms of elementary functions. It involves the **error function** (erf), which is defined as an integral. The program uses a numerical approximation from Abramowitz and Stegun that is accurate to about 7 decimal places:
+The normal CDF does not have a closed form in terms of elementary functions. It is written through the **error function** (erf) by the identity `\Phi(x) = \tfrac{1}{2}\big(1 + \mathrm{erf}(x/\sqrt{2})\big)`$. The program approximates erf with a rational-times-Gaussian formula from Abramowitz and Stegun (7.1.26), whose absolute error is below `1.5 \times 10^{-7}`$:
 
 {lang="lisp",linenos=off}
 ~~~~~~~~
 (defun standard-normal-cdf (x)
-  "CDF of the standard normal via a numerical approximation
-   (Abramowitz and Stegun 26.2.17)."
+  "CDF of the standard normal, Phi(x) = 0.5 (1 + erf(x / sqrt 2)), using the
+   Abramowitz & Stegun 7.1.26 approximation to erf."
   (let* ((sign (if (>= x 0) 1 -1))
-         (ax (abs x))
-         (t-val (/ 1.0 (+ 1.0 (* 0.3275911d0 ax))))
+         (z (/ (abs x) (sqrt 2.0d0)))       ; erf argument: |x| / sqrt 2
+         (t-val (/ 1.0 (+ 1.0 (* 0.3275911d0 z))))
          (y (* t-val (+ 0.254829592d0
                        (* t-val (+ -0.284496736d0
                                    (* t-val (+ 1.421413741d0 ...)))))))
-         (erf (- 1.0 (* y (exp (- (* ax ax)))))))
+         (erf (- 1.0 (* y (exp (- (* z z)))))))
     (* 0.5 (+ 1.0 (* sign erf)))))
 ~~~~~~~~
+
+The `x/\sqrt{2}`$ scaling is what turns the error function into the standard normal CDF; without it the code would return the CDF of a normal with variance `1/2`$. The modern successor to Abramowitz and Stegun is the NIST Digital Library of Mathematical Functions at [dlmf.nist.gov](https://dlmf.nist.gov).
 
 ### The Moment Generating Function of the Normal
 
@@ -195,20 +250,20 @@ For any normal distribution, approximately:
 - 95% lies within `2`$ standard deviations
 - 99.7% lies within `3`$ standard deviations
 
-The program verifies this rule by numerical integration:
+The program verifies this rule two independent ways: by integrating the PDF over each interval, and by differencing the `standard-normal-cdf` at the interval endpoints. The two columns agree:
 
 ```
 === Standard Normal (mu=0, sigma=1) ===
   E[X] (numeric) =    0.0 (should be 0)
   E[X^2] (numeric) =    1.0 (should be 1 = Var)
   Total probability (should be 1.0):  1.0
-  68% rule P(-1 <= Z <= 1) = .683 (should be ~0.6827)
-  95% rule P(-2 <= Z <= 2) = .954 (should be ~0.9545)
-  99.7% rule P(-3 <= Z <= 3) = .997 (should be ~0.9973)
+  68% rule   P(-1<=Z<=1) = .683 (integ) .683 (CDF)  (~0.6827)
+  95% rule   P(-2<=Z<=2) = .954 (integ) .954 (CDF)  (~0.9545)
+  99.7% rule P(-3<=Z<=3) = .997 (integ) .997 (CDF)  (~0.9973)
   CDF(0) =  0.5 (should be 0.5 by symmetry)
 ```
 
-The numerical results match the theoretical values closely. The CDF at `0`$ is exactly `0.5`$ because the standard normal is symmetric about its mean of `0`$.
+The two methods matching is a useful check on both: the integration and the closed-form CDF approximation are computed by completely different code, yet they land on the same 68-95-99.7 figures. The CDF at `0`$ is exactly `0.5`$ because the standard normal is symmetric about its mean of `0`$.
 
 ## Other Named Continuous Distributions
 

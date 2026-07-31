@@ -8,6 +8,8 @@ The example program for this chapter is in the file **06_law_of_large_numbers.li
 
 Jakob Bernoulli, in his posthumous *Ars Conjectandi* (1713), proved the first version of what we now call the Law of Large Numbers for Bernoulli trials. He called his result the "Golden Theorem" and considered it his most important contribution. In modern language, Bernoulli's theorem says that the sample proportion of successes converges to the true probability `p`$ as the number of trials grows. Bernoulli was proud enough of his result to spend twenty years polishing it before publication.
 
+The name we use today came later. Siméon Denis Poisson, in 1837, restated and broadened Bernoulli's result and attached to it the phrase it still carries: *la loi des grands nombres*, the law of large numbers.
+
 Later refinements by Chebyshev in the nineteenth century, and eventually by Khinchin and Kolmogorov in the twentieth, extended the theorem to arbitrary i.i.d. random variables with finite mean. Chebyshev's contribution was a simple but powerful inequality (Chapter 3) that gives a proof of the Weak Law of Large Numbers in a few lines. Kolmogorov's Strong Law is more delicate but rests on the same intuition: averages of many i.i.d. quantities converge to the underlying mean.
 
 ## The Sample Mean
@@ -148,7 +150,7 @@ For the fair die, the true mean is `\mu = (1 + 2 + 3 + 4 + 5 + 6)/6 = 3.5`$. For
   1000000   0.3000    0.0000
 ```
 
-Watch the column `|M_n - \mu|`$ shrink as `n`$ grows. With only `10`$ rolls, the sample mean can be off by `0.3`$ or more. By `100{,}000`$ rolls, the deviation is typically under `0.002`$. By `1{,}000{,}000`$, it is essentially zero. This is the Law of Large Numbers in action.
+Watch the column `|M_n - \mu|`$ shrink as `n`$ grows. With only `10`$ rolls, the sample mean can be off by `0.3`$ or more. By `100{,}000`$ rolls, the deviation is typically under `0.002`$. By `1{,}000{,}000`$, it is essentially zero. This is the Law of Large Numbers in action. The program reseeds its random state on each run, so your exact numbers will differ, but the shrinking trend is always the same.
 
 The convergence is not perfectly monotonic. You can see that the die simulation at `n = 10000`$ has a slightly larger deviation than at `n = 100000`$. This is expected: the LLN guarantees convergence in the long run, but individual samples can fluctuate. The trend is what matters.
 

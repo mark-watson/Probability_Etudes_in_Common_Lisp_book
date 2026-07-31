@@ -237,16 +237,28 @@ The second is a **Bernoulli distribution** with `p = 1/2`$. A Bernoulli random v
 
 The third is the **sum of two fair dice**. This is the classic triangular distribution: the probability of rolling a `7`$ is highest (`6/36 = 1/6`$) because there are more ways to make `7`$ than any other sum, while the probability of rolling a `2`$ or `12`$ is lowest (`1/36`$ each) because there is only one way to make each.
 
+## Additional Computations in the Program
+
+The program does more than tabulate PMFs. It also demonstrates four ideas from earlier in this chapter, each in a few lines.
+
+**Convolution.** The PMF of a sum of independent variables is the convolution of their PMFs, `p_{X+Y}(s) = \sum_{x} p_X(x)\, p_Y(s - x)`$. The function `convolve-pmfs` rebuilds the two-dice distribution from two single dice, and its mean (`7`$) and variance (`35/6`$) match the direct computation. This is the coding exercise from Problem 3.8.
+
+**Standardization.** `standardize` maps each value `x`$ to `(x - \mu)/\sigma`$, producing the PMF of `Z`$. The program confirms that `Z`$ has mean `0`$ and variance `1`$, as Problem 3.7 asks.
+
+**Chebyshev's inequality.** For the dice sum the program prints the actual `P(|X - \mu| \geq k\sigma)`$ next to the distribution-free bound `1/k^2`$, showing the bound holds, and is loose, at every `k`$.
+
+**Covariance and correlation.** Using a joint PMF over value pairs, the program computes `\mathrm{Cov}(X, Y)`$ and `\rho(X, Y)`$ for two independent dice (both `0`$) and for a single die paired with the two-dice sum, where the covariance is `\mathrm{Var}(X) = 35/12`$ and the correlation is `\rho = 1/\sqrt{2} \approx 0.707`$.
+
 ## Running the Example
 
 ```
 === Loaded Die ===
 Distribution of LoadedDie:
-  Normalization check: sum p(x) = 1
+  Normalization check Σ p(x) = 1
   x=1 : P(X=x)=1/10  P(X<=x)=1/10
   x=2 : P(X=x)=1/10  P(X<=x)=1/5
   ...
-  x=6 : P(X=x)=1/2   P(X<=x)=1
+  x=6 : P(X=x)=1/2  P(X<=x)=1
   E[LoadedDie]   = 9/2 =  4.5
   Var(LoadedDie) = 13/4 = 3.25
   sigma   =  1.8
@@ -255,6 +267,27 @@ Distribution of LoadedDie:
   E[DiceSum]   = 7 =  7.0
   Var(DiceSum) = 35/6 = 5.83
   sigma   = 2.42
+
+=== Convolution: single die + single die ===
+  E[die+die]   = 7 =  7.0 (matches DiceSum mean 7)
+  Var(die+die) = 35/6 = 5.83 (matches DiceSum var 35/6)
+
+=== Standardization: Z = (X - mu)/sigma ===
+  mean(Z) =  0.000 (should be 0)
+  var(Z)  =  1.000 (should be 1)
+
+=== Chebyshev's Inequality (dice sum) ===
+  k     actual P(|X-mu|>=k sigma)   bound 1/k^2
+  1.0               0.3333            1.0000
+  1.5               0.1667            0.4444
+  2.0               0.0556            0.2500
+  2.5               0.0000            0.1600
+
+=== Covariance and Correlation ===
+  Two independent dice (X, Y):
+    Cov =  0.000  rho =  0.000 (independent => 0)
+  A die and the two-dice sum (X, X+Y):
+    Cov =  2.917  rho =  0.707 (rho = 1/sqrt(2) ~ 0.707)
 ```
 
 The normalization check confirms that the PMF sums to `1`$. The expected value of the dice sum is exactly `7`$, and the variance is `35/6`$, which is about `5.83`$. These exact rational results come from Lisp's built-in rational arithmetic.

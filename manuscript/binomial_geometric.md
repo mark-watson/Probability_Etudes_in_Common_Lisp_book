@@ -77,6 +77,8 @@ P(X = k) = \frac{\lambda^k e^{-\lambda}}{k!}.
 
 This is why Poisson distributions describe rare events counted over long stretches: the number of decays of a radioactive sample in one second, the number of typos on a page, the number of calls arriving at a call center in a minute. Each event is one of a huge number of possibilities, each with tiny individual probability; the total count is nearly Poisson.
 
+The program makes this concrete. It tabulates `\text{Binomial}(50, 0.06)`$, `\text{Binomial}(500, 0.006)`$, and `\text{Poisson}(3)`$ side by side (all with mean `\lambda = 3`$), and the binomial columns march toward the Poisson one as `n`$ grows. It also reports the **mode** of `\text{Binomial}(10, 0.3)`$, the most likely count, from the closed form `\lfloor (n+1)p \rfloor`$ (Problem 4.9).
+
 ## The Geometric Distribution
 
 The **geometric distribution** answers a different question: if we run `\text{Bernoulli}(p)`$ trials until the **first success** occurs, how many trials do we need? If `Y`$ is the number of trials (including the successful one), then:
@@ -177,23 +179,37 @@ The memoryless property is a strong assumption in these applications. It is only
 ```
 === Binomial Distribution: n=10, p=0.3 ===
   E[X] = n p = 3,  Var(X) = n p (1-p) = 21/10
-  P(X=0) = .028   CDF F(0) = 0.028
-  P(X=1) = .121   CDF F(1) = 0.149
-  P(X=2) = .233   CDF F(2) = 0.383
-  P(X=3) = .267   CDF F(3) = 0.650
+  P(X=0) = 0.0282   CDF F(0) = 0.0282
+  P(X=1) = 0.1211   CDF F(1) = 0.1493
+  P(X=2) = 0.2335   CDF F(2) = 0.3828
+  P(X=3) = 0.2668   CDF F(3) = 0.6496
   ...
-  P(X=10) = 0.0   CDF F(10) = 1.0
+  P(X=10) = 0.0000   CDF F(10) = 1.0000
 
 === Geometric Distribution: p=0.2 ===
   E[Y] = 1/p = 5,  Var(Y) = (1-p)/p^2 = 20
-  P(Y=1) = 0.2   P(Y>1) = 0.8
-  P(Y=2) = 0.16  P(Y>2) = 0.64
+  P(Y=1) = 1/5 =  0.2   P(Y>1) = 4/5 =  0.8
+  P(Y=2) = 4/25 = 0.16   P(Y>2) = 16/25 = 0.64
   ...
 
 === Memoryless Property ===
   Memoryless property check (p=1/5, m=3, n=2):
     P(Y > m+n | Y > m) = 16/25 = 0.64
     P(Y > n)          = 16/25 = 0.64
+
+=== Poisson Limit of the Binomial (lambda = n p = 3) ===
+  As n grows with n p = 3 fixed, Binomial(n, 3/n) -> Poisson(3).
+   k   Binom(50,0.06)   Binom(500,0.006)   Poisson(3)
+  0         0.04533          0.04934         0.04979
+  1         0.14467          0.14891         0.14936
+  2         0.22624          0.22427         0.22404
+  3         0.23106          0.22472         0.22404
+  4         0.17329          0.16854         0.16803
+  5         0.10176          0.10092         0.10082
+  6         0.04872          0.05026         0.05041
+
+=== Binomial Mode ===
+  Most likely k for Binomial(10, 0.3) = 3 (the peak of the PMF above)
 ```
 
 The binomial distribution with `n = 10`$ and `p = 0.3`$ is peaked around `k = 3`$ (the mean), with the probability declining on both sides. The CDF rises from near `0`$ to exactly `1`$, confirming that the PMF sums to `1`$.

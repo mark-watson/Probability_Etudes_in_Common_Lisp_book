@@ -71,7 +71,10 @@
     (dolist (b bins)
       (let* ((center (car b))
              (count (cdr b))
-             (bar-len (round (* (/ count max-count) max-bar-width))))
+             ;; Give any nonzero bin at least one mark so the tapering tails
+             ;; stay visible instead of printing as blank lines.
+             (bar-len (if (zerop count) 0
+                          (max 1 (round (* (/ count max-count) max-bar-width))))))
         (format t "  ~6,3f | ~a~%" center (make-string bar-len
                                                          :initial-element #\*))))))
 
@@ -95,7 +98,10 @@
       (format t "  var  of M_n's = ~6,4f~%" emp-var)
       (format t "  (These should be close to the CLT predictions.)~%~%")
       (format t "Histogram of sample means (bell-shaped = CLT at work):~%")
-      (let ((bins (make-histogram data 20 0.0 1.0)))
+      ;; Range the histogram to the data so the tails do not waste empty bins.
+      (let* ((lo (reduce #'min data))
+             (hi (reduce #'max data))
+             (bins (make-histogram data 20 lo hi)))
         (print-histogram bins 50))
       (format t "~%Notice the bell shape: sums of ANY i.i.d. variables with~%")
       (format t "finite variance tend toward a normal distribution.~%"))))

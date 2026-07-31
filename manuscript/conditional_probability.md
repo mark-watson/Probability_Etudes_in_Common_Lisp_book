@@ -244,7 +244,7 @@ P(A | B)     = 1/6 = .167
 Independent? yes
 
 e1 = 'first die is 1', e2 = 'second die is 1'
-P(e1) = 1/6, P(e2) = 1/6, P(e1 intersection e2) = 1/36
+P(e1) = 1/6, P(e2) = 1/6, P(e1 ∩ e2) = 1/36
 Independent? yes (rolling separate dice never affects each other)
 
 === Bayes' Theorem ===

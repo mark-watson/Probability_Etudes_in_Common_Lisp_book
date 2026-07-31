@@ -91,6 +91,63 @@
   "sigma = sqrt(Var(X))."
   (sqrt (variance p)))
 
+(defun standardize (p)
+  "PMF of the standardized variable Z = (X - mu)/sigma, which has mean 0 and
+   variance 1. Each value x maps to (x - mu)/sigma; probabilities are unchanged.
+   Standardization puts different distributions on a common scale."
+  (let ((mu (expectation p))
+        (sigma (standard-deviation p)))
+    (make-pmf :table (mapcar (lambda (entry)
+                               (cons (/ (- (car entry) mu) sigma) (cdr entry)))
+                             (pmf-table p)))))
+
+(defun convolve-pmfs (p q)
+  "PMF of the sum X + Y for INDEPENDENT X ~ p and Y ~ q:
+     P(X + Y = s) = sum_{x + y = s} p(x) q(y).
+   Independence is what lets the joint probability factor into p(x) q(y)."
+  (let ((table nil))
+    (dolist (ex (pmf-table p))
+      (dolist (ey (pmf-table q))
+        (let* ((s (+ (car ex) (car ey)))
+               (pr (* (cdr ex) (cdr ey)))
+               (cell (assoc s table :test #'eql)))
+          (if cell (incf (cdr cell) pr) (push (cons s pr) table)))))
+    (make-pmf :table (sort table #'< :key #'car))))
+
+(defun joint-expectation (joint fn)
+  "E[fn(x, y)] for a JOINT PMF represented as an alist mapping (x y) -> prob."
+  (reduce #'+ (mapcar (lambda (entry)
+                        (destructuring-bind (x y) (car entry)
+                          (* (funcall fn x y) (cdr entry))))
+                      joint)))
+
+(defun covariance (joint)
+  "Cov(X, Y) = E[XY] - E[X] E[Y] for a joint PMF over (x y) pairs.
+   Zero for independent variables; nonzero signals linear co-movement."
+  (let ((ex  (joint-expectation joint (lambda (x y) (declare (ignore y)) x)))
+        (ey  (joint-expectation joint (lambda (x y) (declare (ignore x)) y)))
+        (exy (joint-expectation joint (lambda (x y) (* x y)))))
+    (- exy (* ex ey))))
+
+(defun correlation (joint)
+  "Correlation coefficient rho = Cov(X,Y)/(sigma_X sigma_Y), always in [-1, 1].
+   It measures only the LINEAR part of the association between X and Y."
+  (let ((varx (- (joint-expectation joint (lambda (x y) (declare (ignore y)) (* x x)))
+                 (expt (joint-expectation joint (lambda (x y) (declare (ignore y)) x)) 2)))
+        (vary (- (joint-expectation joint (lambda (x y) (declare (ignore x)) (* y y)))
+                 (expt (joint-expectation joint (lambda (x y) (declare (ignore x)) y)) 2))))
+    (/ (covariance joint) (* (sqrt varx) (sqrt vary)))))
+
+(defun chebyshev-tail (p k)
+  "Actual P(|X - mu| >= k sigma) for this PMF, to compare against Chebyshev's
+   distribution-free bound 1/k^2."
+  (let ((mu (expectation p))
+        (sigma (standard-deviation p)))
+    (reduce #'+ (mapcar (lambda (entry)
+                          (if (>= (abs (- (car entry) mu)) (* k sigma))
+                              (cdr entry) 0))
+                        (pmf-table p)))))
+
 (defun print-distribution (p &optional (name "X"))
   "Pretty-print the PMF, CDF at each value, mean, and variance."
   (format t "Distribution of ~a:~%" name)
@@ -125,6 +182,41 @@
                   (cons 6 5/36) (cons 7 6/36) (cons 8 5/36) (cons 9 4/36)
                   (cons 10 3/36) (cons 11 2/36) (cons 12 1/36)))))
     (format t "=== Sum of Two Fair Dice ===~%")
-    (print-distribution dice-sum "DiceSum")))
+    (print-distribution dice-sum "DiceSum")
+
+    ;; Build the same distribution by CONVOLVING two single dice.
+    (format t "~%=== Convolution: single die + single die ===~%")
+    (let* ((die (make-pmf-from-alist (loop for i from 1 to 6 collect (cons i 1/6))))
+           (sum2 (convolve-pmfs die die)))
+      (format t "  E[die+die]   = ~a = ~4f (matches DiceSum mean 7)~%"
+              (expectation sum2) (float (expectation sum2)))
+      (format t "  Var(die+die) = ~a = ~4f (matches DiceSum var 35/6)~%"
+              (variance sum2) (float (variance sum2))))
+
+    ;; STANDARDIZE the dice sum: the result should have mean 0, variance 1.
+    (format t "~%=== Standardization: Z = (X - mu)/sigma ===~%")
+    (let ((z (standardize dice-sum)))
+      (format t "  mean(Z) = ~6,3f (should be 0)~%" (float (expectation z)))
+      (format t "  var(Z)  = ~6,3f (should be 1)~%" (float (variance z))))
+
+    ;; CHEBYSHEV: actual tail vs the distribution-free bound 1/k^2.
+    (format t "~%=== Chebyshev's Inequality (dice sum) ===~%")
+    (format t "  k     actual P(|X-mu|>=k sigma)   bound 1/k^2~%")
+    (dolist (k '(1.0 1.5 2.0 2.5))
+      (format t "  ~3,1f   ~18,4f        ~10,4f~%"
+              k (float (chebyshev-tail dice-sum k)) (/ 1.0 (* k k)))))
+
+  ;; COVARIANCE and CORRELATION need a JOINT distribution over pairs.
+  (format t "~%=== Covariance and Correlation ===~%")
+  (let ((indep (loop for i from 1 to 6 append
+                  (loop for j from 1 to 6 collect (cons (list i j) 1/36))))
+        (x-and-sum (loop for i from 1 to 6 append
+                     (loop for j from 1 to 6 collect (cons (list i (+ i j)) 1/36)))))
+    (format t "  Two independent dice (X, Y):~%")
+    (format t "    Cov = ~6,3f  rho = ~6,3f (independent => 0)~%"
+            (float (covariance indep)) (float (correlation indep)))
+    (format t "  A die and the two-dice sum (X, X+Y):~%")
+    (format t "    Cov = ~6,3f  rho = ~6,3f (rho = 1/sqrt(2) ~~ 0.707)~%"
+            (float (covariance x-and-sum)) (float (correlation x-and-sum)))))
 
 (main)
