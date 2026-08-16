@@ -82,8 +82,7 @@ For heavy-tailed distributions or highly skewed distributions, the convergence c
 
 The program demonstrates the CLT with a deliberately non-normal source: a `\text{Bernoulli}(0.5)`$ distribution, which takes only the values `0`$ and `1`$. This is about as far from a bell curve as you can get. We draw sample means of size `n = 50`$ and collect `10{,}000`$ of them:
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun sample-mean (p n)
   "M_n = average of n i.i.d. Bernoulli(p)."
   (/ (loop for i below n sum (bernoulli p)) n 1.0d0))
@@ -92,7 +91,7 @@ The program demonstrates the CLT with a deliberately non-normal source: a `\text
   "Collect NUM-SAMPLES independent sample means, each from n Bernoulli(p)
    trials."
   (loop for s below num-samples collect (sample-mean p n)))
-~~~~~~~~
+```
 
 The CLT predicts that these sample means should have:
 

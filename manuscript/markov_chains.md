@@ -35,14 +35,13 @@ Our example uses a simple weather model with two states: Sunny and Rainy. The tr
 - From Sunny: 80% chance of staying Sunny, 20% chance of becoming Rainy
 - From Rainy: 40% chance of becoming Sunny, 60% chance of staying Rainy
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (let* ((P (make-transition-matrix
             '((0.8 0.2)   ; from Sunny: 80% stay Sunny, 20% -> Rainy
               (0.4 0.6)))) ; from Rainy: 40% -> Sunny, 60% stay Rainy
        (start #(1.0d0 0.0d0)))  ; start certainly Sunny
   ...)
-~~~~~~~~
+```
 
 If today is Sunny, there is an 80% chance tomorrow is Sunny too. But if today is Rainy, there is still a 40% chance of a Sunny tomorrow. The weather has persistence: Sunny days tend to follow Sunny days, and Rainy days tend to follow Rainy days.
 
@@ -56,8 +55,7 @@ v_{t+1} = v_t P.
 
 After `n`$ steps, the distribution is `v_n = v_0 P^n`$. The program computes this by repeated multiplication:
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun step-distribution (dist P)
   "Advance one step: v_{t+1} = v_t P. Returns a new distribution vector."
   (let* ((n (length dist))
@@ -74,7 +72,7 @@ After `n`$ steps, the distribution is `v_n = v_0 P^n`$. The program computes thi
     (dotimes (s steps)
       (setf d (step-distribution d P)))
     d))
-~~~~~~~~
+```
 
 The `n`$-step transition matrix `P^n`$ has a direct probabilistic meaning: the `(i, j)`$ entry is `P(X_n = j \mid X_0 = i)`$, the probability of being in state `j`$ after `n`$ steps starting from state `i`$. Powers of the transition matrix are one of the primary computational objects when working with Markov chains.
 
@@ -134,12 +132,11 @@ Detailed balance is a much easier condition to check than the full stationarity 
 
 The program finds the stationary distribution two ways. The first is by **long iteration**: just run the chain for 10,000 steps and read off the distribution:
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun stationary-by-iteration (dist P steps)
   "Approximate the stationary distribution by long-run simulation of v_t P."
   (iterate-chain dist P steps))
-~~~~~~~~
+```
 
 The second is by **solving the linear system** `\pi = \pi P`$ directly. For a two-state chain with transition matrix `\begin{pmatrix} a & 1-a \\ b & 1-b \end{pmatrix}`$, the stationary distribution is:
 
@@ -150,15 +147,14 @@ The second is by **solving the linear system** `\pi = \pi P`$ directly. For a tw
 \end{aligned}
 ```
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun stationary-by-linear-system (P)
   "Solve pi = pi P exactly for a 2-state chain."
   (let* ((a (aref (aref P 0) 0))   ; P[S->S]
          (b (aref (aref P 1) 0))   ; P[R->S]
          (denom (+ (- 1 a) b)))
     (vector (/ b denom) (/ (- 1 a) denom))))
-~~~~~~~~
+```
 
 For larger chains, we solve the system `(P^T - I) \pi^T = 0`$ subject to the constraint `\sum_i \pi_i = 1`$. This is a standard linear algebra problem and can also be posed as finding the left eigenvector of `P`$ corresponding to eigenvalue `1`$.
 

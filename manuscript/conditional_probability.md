@@ -24,14 +24,13 @@ Note that `P(A \mid B)`$ is defined only when `P(B) > 0`$. Conditioning on an ev
 
 In the example program, we compute conditional probability by taking the intersection of the two events and dividing by the size of the conditioning event:
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun conditional-probability (a b omega)
   "P(A | B) = P(A intersection B) / P(B).
    The intersection A intersection B is the set of outcomes in BOTH events."
   (let ((intersection (intersection a b :test #'equal)))
     (/ (length intersection) (length b))))
-~~~~~~~~
+```
 
 ### Conditional Probability as a Probability Measure
 
@@ -81,15 +80,14 @@ In our two-dice example, the event "first die is 1" and the event "second die is
 
 The program checks independence by comparing P(A and B) with P(A) times P(B):
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun independent-p (a b omega)
   "Are A and B independent?  Check whether P(A intersection B) = P(A) * P(B)."
   (let ((intersection (intersection a b :test #'equal)))
     (= (probability-classical intersection omega)
        (* (probability-classical a omega)
           (probability-classical b omega)))))
-~~~~~~~~
+```
 
 ### Mutual Independence for Three or More Events
 
@@ -168,8 +166,7 @@ The classic application of Bayes' theorem is medical testing. Suppose we have a 
 
 Most people intuitively guess around 99%, but the answer is dramatically lower. Let us work through it:
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun bayes-medical-test ()
   (let* ((p-disease 1/100)            ; prior P(D)
          (p-healthy 99/100)           ; P(no D) = 1 - P(D)
@@ -182,7 +179,7 @@ Most people intuitively guess around 99%, but the answer is dramatically lower. 
       ;; Bayes: P(D | +) = P(+ | D) P(D) / P(+)
       (let ((posterior (/ (* p-pos-given-disease p-disease) p-positive)))
         ...))))
-~~~~~~~~
+```
 
 The prior probability of having the disease is only `1/100`$. The test has a 5% false-positive rate, and since 99% of the population is healthy, those false positives add up. The total probability of a positive test is:
 

@@ -76,8 +76,7 @@ HMC and variational inference both need the gradient of `\log g`$. The file impl
 
 For a unary function `f`$ with derivative `f'`$, the rule is `f(\text{dual}(v, g)) = \text{dual}(f(v),\, f'(v)\, g)`$. For a binary function the partials combine by the chain rule. Constants stay plain doubles, so Metropolis-Hastings, which needs no gradient, pays no AD overhead.
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defstruct (dual (:constructor make-dual (v g)))
   (v 0.0d0 :type double-float)   ; the value
   (g))                            ; simple-vector of partials, length *ad-dim*
@@ -100,12 +99,11 @@ For a unary function `f`$ with derivative `f'`$, the rule is `f(\text{dual}(v, g
           (setf (aref g i) (+ (* da (aref ga i)) (* db (aref gb i)))))
         (make-dual val g))
       val))
-~~~~~~~~
+```
 
 On top of these two combinators, the file defines differentiable versions of the arithmetic operators. Each one passes the right partials through `d-binary` or `d-unary`:
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun g+ (a b) (d-binary a b (+ (dv a) (dv b)) 1.0d0 1.0d0))
 (defun g* (a b) (let ((av (dv a)) (bv (dv b)))
                   (d-binary a b (* av bv) bv av)))
@@ -115,12 +113,11 @@ On top of these two combinators, the file defines differentiable versions of the
 (defun glog (x)
   ;; Clamp the argument into the positive domain of log.
   (let ((ax (max 1d-300 (dv x)))) (d-unary x (log ax) (/ 1.0d0 ax))))
-~~~~~~~~
+```
 
 The entry point seeds coordinate `i`$ with the unit dual `e_i`$ (value `0`$ everywhere except partial `i`$ set to `1`$), runs the function once, and reads the value and full gradient off the result. One pass gives the whole gradient vector:
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun ad-gradient (f x)
   "Differentiate scalar F at point X (a vector of doubles).
    Seeds coordinate i with the unit dual e_i, runs F once, and reads the
@@ -134,7 +131,7 @@ The entry point seeds coordinate `i`$ with the unit dual `e_i`$ (value `0`$ ever
         (setf (aref duals i) (make-dual (coerce (aref x i) 'double-float) g))))
     (let ((r (funcall f duals)))
       (values (dv r) (dg r)))))
-~~~~~~~~
+```
 
 The cost is one evaluation of `f`$ per parameter dimension, which is fine for the small models in this chapter. (Reverse-mode AD would be cheaper for functions with many inputs and one output, but forward mode is simple to build and exact.) The numerical guards in `gexp`$ and `glog`$ matter: a divergent HMC trajectory can push a parameter to an extreme value, and clamping keeps the gradient finite so the trajectory can be rejected rather than crashing the sampler.
 
@@ -142,8 +139,7 @@ The cost is one evaluation of `f`$ per parameter dimension, which is fine for th
 
 Each distribution is a small record holding three things: a log-density function written with the differentiable operators, a plain sampler used to initialize chains, and the **support** of the distribution (`:real`, `:positive`, `:unit`, `:bounded`, or `:discrete`). The support fixes the transform to unconstrained space.
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defstruct (dist (:conc-name dist-))
   name logpdf sampler (support :real) (lo nil) (hi nil))
 
@@ -156,7 +152,7 @@ Each distribution is a small record holding three things: a log-density function
              (let ((z (g/ (g- x mu) sigma)))
                (g- (g- (gneg (g* 0.5d0 (gsquare z))) (glog sigma))
                    (* 0.5d0 +log2pi+))))))
-~~~~~~~~
+```
 
 The log-density is built from `g-`, `g*`, `g/`, `gsquare`, and `glog`, so it carries gradients when its inputs are duals and computes plainly when they are doubles. The parameters `mu`$ and `sigma`$ may themselves be duals, which is what makes hierarchical models work: a likelihood mean can depend on other latents, and the gradient still flows through.
 
@@ -166,8 +162,7 @@ The library supplies Normal, Half-Normal, Exponential, Gamma, Beta, Uniform, Ber
 
 Two small functions handle the mapping between constrained and unconstrained space. `constrain-support` maps an unconstrained real `u`$ back to the distribution's support, and `log-jac-support`$ returns the log Jacobian of that map. Both are written with the differentiable operators so the Jacobian term enters the gradient correctly.
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun constrain-support (support lo hi u)
   "Map an unconstrained real U to the distribution's support."
   (case support
@@ -187,7 +182,7 @@ Two small functions handle the mapping between constrained and unconstrained spa
     (:bounded (let ((s (sigmoidg u)))
                 (g+ (log (- hi lo)) (g+ (glog s) (glog (g- 1.0d0 s))))))
     (t 0.0d0)))
-~~~~~~~~
+```
 
 For `:positive`$ support the Jacobian term is just `u`$, because `d/du\, \exp(u) = \exp(u)`$ and `\log(\exp(u)) = u`$. For `:unit`$ support it is `\log \sigma(u) + \log(1 - \sigma(u))`$, the log of the sigmoid derivative. The sampler side uses a plain `log`$ and `logit`$ to invert the transform when placing initial values.
 
@@ -200,8 +195,7 @@ The macro `defmodel` defines a function that, when called with data, returns a *
 
 The body never mentions transforms or gradients. `sample` and `observe` handle all of it.
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defmacro defmodel (name (&rest params) &body body)
   "Define a probabilistic model NAME with formal data PARAMS. Inside BODY use
    (sample name dist) to declare a latent and (observe dist datum) to score
@@ -209,12 +203,11 @@ The body never mentions transforms or gradients. `sample` and `observe` handle a
   `(defun ,name ,params
      (make-model :name ',name :param-names ',params
                  :thunk (lambda () ,@body))))
-~~~~~~~~
+```
 
 `sample` declares a latent. In `:init`$ mode it records the latent's support and returns a starting value. In `:density`$ mode it reads the next parameter from the vector, transforms it to the natural scale, and adds the prior log density plus the Jacobian to the running total:
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun sample (name dist)
   "Declare a latent variable NAME with prior DIST; return its current value."
   (let ((ctx *ctx*))
@@ -253,12 +246,11 @@ The body never mentions transforms or gradients. `sample` and `observe` handle a
             (g+ (ctx-logdens ctx)
                 (funcall (dist-logpdf dist) (coerce value 'double-float)))))
     value))
-~~~~~~~~
+```
 
 The same body serves both modes because `sample` and `observe` dispatch on `ctx-mode`. Running the body once in `:init`$ mode builds the latent list and the start vector; running it in `:density`$ mode with a parameter vector builds the log posterior. Two thin wrappers package these:
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun model-init (model)
   "Run MODEL once in init mode. Returns (values init-u-vector pstates)."
   (let ((*ctx* (make-ctx :mode :init)))
@@ -272,7 +264,7 @@ The same body serves both modes because `sample` and `observe` dispatch on `ctx-
     (let ((*ctx* (make-ctx :mode :density :params u)))
       (funcall (model-thunk model))
       (ctx-logdens *ctx*))))
-~~~~~~~~
+```
 
 The dynamic variable `*ctx*`$ carries the mode and the accumulator, so the model body reads like a direct description of the generative process. This is the whole point of an embedded DSL: the model is just a Lisp function, and the host language's machinery does the rest.
 
@@ -280,8 +272,7 @@ The dynamic variable `*ctx*`$ carries the mode and the accumulator, so the model
 
 The file ships three data generators, one per built-in model. Before fitting, it helps to see what the data look like.
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun example-coin-data ()
   "40 flips with 28 heads (true bias near 0.7)."
   (append (make-list 28 :initial-element 1) (make-list 12 :initial-element 0)))
@@ -298,7 +289,7 @@ The file ships three data generators, one per built-in model. Before fitting, it
       (let ((x (- (* 4.0d0 (runif)) 2.0d0)))
         (setf (aref xs i) x
               (aref ys i) (+ 1.0d0 (* 2.0d0 x) (rnorm 0.0d0 1.0d0)))))))
-~~~~~~~~
+```
 
 The three formats are:
 
@@ -314,8 +305,7 @@ Because the global random state is freshly seeded on every load, the exact data 
 
 The simplest engine is a random-walk Metropolis sampler in unconstrained space. At each iteration it adds isotropic Gaussian noise to the current point, evaluates `\log g`$ at the proposal, and accepts with the Metropolis ratio. Divergent proposals (infinite or NaN log density) are rejected. The engine records the acceptance rate and returns posterior draws transformed back to the natural scale.
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun engine-mh (model &rest args)
   "Random-walk Metropolis in unconstrained space. Gradient-free MCMC."
   (let* ((iters (getf args :iters 6000))
@@ -341,7 +331,7 @@ The simplest engine is a random-walk Metropolis sampler in unconstrained space. 
             (push (constrain-draw pstates u) rows)))
         (values (nreverse rows) pstates
                 (list :accept-rate (/ nacc (max 1 nprop) 1.0d0)))))))
-~~~~~~~~
+```
 
 The proposal scale `step`$ controls the tradeoff between acceptance rate and move size. Too small and nearly every proposal is accepted but the chain crawls; too large and nearly every proposal is rejected and the chain stalls. A rate around `0.2`$ to `0.5`$ usually mixes well for random-walk Metropolis.
 
@@ -349,8 +339,7 @@ The proposal scale `step`$ controls the tradeoff between acceptance rate and mov
 
 HMC treats `-\log g(u)`$ as a potential energy. Each iteration draws a fresh momentum `p \sim \mathcal{N}(0, I)`$, then simulates the Hamiltonian dynamics with the **leapfrog integrator**. The integrator alternates half-step momentum updates with full-step position updates, using the gradient of the potential at each step. The gradient comes from `ad-gradient`, so it is exact.
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (labels ((potential-grad (uv)
            ;; Potential U = -log g; its gradient is -grad(log g).
            (multiple-value-bind (val g) (ad-gradient f uv)
@@ -388,7 +377,7 @@ HMC treats `-\log g(u)`$ as a potential energy. Each iteration draws a fresh mom
                                                   (+ prop-pot prop-kin))))
                                0.0d0)))
                 (when (< (runif) alpha) (setf u uu) (incf nacc))))))))))
-~~~~~~~~
+```
 
 Two details matter in practice. The path length is jittered each iteration (`steps = 1 + random(steps0)`) so the integrator cannot resonate with the target's curvature, which would cripple mixing. And a divergent trajectory (the potential becomes infinite) breaks out of the leapfrog loop early and is rejected, the same safety net as in Metropolis. During warmup a Nesterov dual-averaging scheme adapts the step size `eps`$ toward a target acceptance rate of `0.8`$, then freezes it to the running average for the sampling phase. This is the adaptation recipe from Hoffman and Gelman's NUTS paper, applied to plain HMC.
 
@@ -403,8 +392,7 @@ The variational engine fits a factorized Normal `q(u) = \prod_i \mathcal{N}(m_i,
 
 The `+1`$ on the log-standard-deviation gradient is the entropy term `\mathcal{H}(q)`$: it widens `q`$ unless the data pulls the mean toward higher `\log g`$. Adam ascends both parameter sets.
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (dotimes (s mc)
   (let ((eps (randn-vec dim)) (u (make-dvec dim)))
     (dotimes (i dim)
@@ -418,7 +406,7 @@ The `+1`$ on the log-standard-deviation gradient is the entropy term `\mathcal{H
           (incf (aref gl i)
                 (+ (* (aref g i) (exp (aref ls i)) (aref eps i))
                    1.0d0)))))))
-~~~~~~~~
+```
 
 After Adam converges, the engine draws a large sample from the fitted `q`$ and returns those draws, transformed back to the natural scale, as its posterior summary. Variational inference is fast and deterministic, but its answer is only as good as the factorized Normal approximation. For a unimodal posterior on the unconstrained scale it does well; for a posterior with strong correlations or multiple modes it can miss.
 
@@ -434,8 +422,7 @@ n_{\text{eff}} = \frac{n}{1 + 2 \sum_{k=1}^{\infty} \rho_k},
 
 where `\rho_k`$ is the lag-`k`$ autocorrelation. An ESS near `n`$ means the draws are nearly independent; an ESS far below `n`$ means the chain mixes poorly and you should run longer or switch engines.
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun ess (series)
   "Effective sample size from Geyer's initial positive autocorrelation sum."
   (let* ((n (length series)) (m (mean-of series))
@@ -449,7 +436,7 @@ where `\rho_k`$ is the lag-`k`$ autocorrelation. An ESS near `n`$ means the draw
                 while (> rho 0.0d0)
                 do (incf s rho))
           (clampd (/ n (+ 1.0d0 (* 2.0d0 s))) 1.0d0 (coerce n 'double-float))))))
-~~~~~~~~
+```
 
 The **Gelman-Rubin** `\hat{R}`$ (R-hat) compares the variance within each chain to the variance between chains. Run several chains from dispersed starts. If they all sample the same posterior, the between-chain variance should match the within-chain variance and `\hat{R} \approx 1`$. If the chains disagree, `\hat{R}`$ rises above `1`$, signalling that the chains have not converged. The statistic is
 
@@ -473,13 +460,12 @@ Type `demo` at the `ppl>` prompt for a guided tour, or fit a model directly. The
 
 The coin model puts a `\text{Beta}(1, 1)`$ prior (uniform on `[0, 1]`$) on the bias `p`$ and scores `40`$ flips, `28`$ of them heads, with a Bernoulli likelihood:
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defmodel coin-model (flips)
   "Coin bias: p ~ Beta(1,1), each flip ~ Bernoulli(p)."
   (let ((p (sample :p (beta-dist 1.0d0 1.0d0))))
     (dolist (f flips) (observe (bernoulli p) f))))
-~~~~~~~~
+```
 
 With a `\text{Beta}(1, 1)`$ prior and `28`$ heads, `12`$ tails, the exact posterior is `\text{Beta}(29, 13)`$ with mean `29/42 \approx 0.6905`$ (Chapter 9's conjugate update). HMC with two chains reproduces it:
 
@@ -530,15 +516,14 @@ All three land within a couple of percentage points of `0.6905`$. Metropolis and
 
 The mean-var model puts a `\mathcal{N}(0, 10)`$ prior on the mean, a Half-Normal`(5)`$ prior on the standard deviation, and scores `60`$ draws from `\mathcal{N}(5, 2)`$ with a Normal likelihood:
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defmodel mean-var-model (data)
   "Unknown mean and spread: mu ~ Normal(0,10), sigma ~ HalfNormal(5),
    each datum ~ Normal(mu, sigma)."
   (let ((mu (sample :mu (normal 0.0d0 10.0d0)))
         (sigma (sample :sigma (half-normal 5.0d0))))
     (loop for x across data do (observe (normal mu sigma) x))))
-~~~~~~~~
+```
 
 Two chains recover both parameters:
 
@@ -556,8 +541,7 @@ The posterior mean of `mu`$ is `5.06`$, bracketing the true `5`$. The posterior 
 
 The regression model puts Normal priors on the intercept and slope and a Half-Normal prior on the noise, then scores `40`$ `(x, y)`$ points. The mean `a + b x`$ is built with the differentiable operators `g+`$ and `g*`$, so HMC and VI get gradients through it:
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defmodel regression-model (xs ys)
   "Linear regression y ~ Normal(a + b x, sigma). The mean a + b*x is built
    with the differentiable ops so HMC and VI get gradients through it."
@@ -566,7 +550,7 @@ The regression model puts Normal priors on the intercept and slope and a Half-No
         (sigma (sample :sigma (half-normal 5.0d0))))
     (loop for x across xs for y across ys
           do (observe (normal (g+ a (g* b x)) sigma) y))))
-~~~~~~~~
+```
 
 Two chains recover the true line `y = 1 + 2x`$ with noise `1`$:
 

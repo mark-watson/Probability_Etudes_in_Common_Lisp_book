@@ -30,8 +30,7 @@ Two ingredients are worth pausing over. First, the factor `p^k (1-p)^{n-k}`$ ari
 
 The program computes binomial coefficients iteratively to avoid huge intermediate factorials:
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun binomial-coefficient (n k)
   "C(n,k) = n!/(k!(n-k)!). Computed iteratively to avoid huge
    intermediate factorials."
@@ -41,7 +40,7 @@ The program computes binomial coefficients iteratively to avoid huge intermediat
             for i from 1 to k
             do (setf result (* result (/ (+ n (- k) i) i)))
             finally (return (round result)))))
-~~~~~~~~
+```
 
 The mean and variance of the binomial distribution are:
 
@@ -129,8 +128,7 @@ If you have already waited `m`$ trials without a success, the probability of wai
 
 The program demonstrates this property directly:
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun demonstrate-memoryless-property (p m n)
   "Show P(Y > m+n | Y > m) = P(Y > n) for a geometric random variable Y."
   (let ((conditional (/ (geometric-tail p (+ m n)) (geometric-tail p m))))
@@ -138,7 +136,7 @@ The program demonstrates this property directly:
     (format t "    P(Y > m+n | Y > m) = ~a = ~4f~%" conditional (float conditional))
     (format t "    P(Y > n)          = ~a = ~4f~%" (geometric-tail p n)
             (float (geometric-tail p n)))))
-~~~~~~~~
+```
 
 The proof is a one-liner. Since `P(Y > k) = (1 - p)^k`$, we have:
 

@@ -115,8 +115,7 @@ The LLN is also the theoretical foundation of Monte Carlo methods (Chapter 8), w
 
 The program demonstrates the LLN by simulating a fair die and a Bernoulli process, tracking the sample mean as n grows from 10 to 1,000,000:
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun roll-die ()
   "Simulate one roll of a fair six-sided die: uniform on {1,...,6}."
   (+ 1 (random 6 *rng-state*)))
@@ -124,7 +123,7 @@ The program demonstrates the LLN by simulating a fair die and a Bernoulli proces
 (defun sample-mean-of-rolls (n)
   "Compute M_n = average of n die rolls. By the LLN this approaches 3.5."
   (/ (loop for i below n sum (roll-die)) n))
-~~~~~~~~
+```
 
 For the fair die, the true mean is `\mu = (1 + 2 + 3 + 4 + 5 + 6)/6 = 3.5`$. For the Bernoulli process with `p = 0.3`$, the true mean is `\mu = 0.3`$.
 

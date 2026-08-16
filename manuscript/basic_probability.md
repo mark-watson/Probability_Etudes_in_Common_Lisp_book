@@ -36,23 +36,21 @@ Note that events are just sets of outcomes. The distinction between an outcome (
 
 In the example program, we build the sample space for two dice as a list of all 36 ordered pairs:
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun make-two-dice-sample-space ()
   "Build the sample space Omega for rolling two distinguishable dice.
    Omega = { (i,j) : 1 <= i <= 6, 1 <= j <= 6 } has |Omega| = 36 outcomes."
   (loop for i from 1 to 6
         append (loop for j from 1 to 6 collect (list i j))))
-~~~~~~~~
+```
 
 The events are defined by filtering the sample space with a predicate. For example, the event "sum equals 7" keeps only the outcomes where the two dice add up to 7:
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun event-sum-is (omega target)
   "Event: outcomes whose dice sum equals TARGET."
   (remove-if-not (lambda (outcome) (= (reduce #'+ outcome) target)) omega))
-~~~~~~~~
+```
 
 ## Set Operations on Events
 
@@ -161,13 +159,12 @@ The classical formula is the case where every `p(\omega)`$ equals `1/|\Omega|`$.
 
 For two fair dice, each of the 36 outcomes is equally likely, so we can compute probabilities by counting:
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun probability-classical (event omega)
   "Compute P(event) under the equally-likely-outcomes model:
        P(A) = |A| / |Omega|."
   (/ (length event) (length omega)))
-~~~~~~~~
+```
 
 The function returns an exact rational number. Lisp's rational arithmetic is a nice fit for probability calculations because many probabilities are fractions like 1/6 or 11/36.
 
@@ -193,13 +190,12 @@ This follows because an event `A`$ and its complement (everything in the sample 
 
 The complement rule is surprisingly useful. Sometimes it is easier to compute the probability that something does NOT happen, and then subtract from 1. For example, the probability of rolling "at least one 6" in two dice is easier to compute via its complement "no 6 appears at all":
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun demonstrate-complement-rule (event omega)
   "The COMPLEMENT RULE is a consequence of the axioms:
        P(not A) = 1 - P(A)."
   (- 1 (probability-classical event omega)))
-~~~~~~~~
+```
 
 ## Running the Example
 

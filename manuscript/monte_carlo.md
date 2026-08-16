@@ -74,8 +74,7 @@ So our estimator is:
 \hat{\pi} = 4 \cdot (\text{fraction of points inside the disk}).
 ```
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun random-point-in-unit-square ()
   "Return (x, y) with x,y ~ Uniform(0,1) independently."
   (values (random 1.0d0 *rng-state*)
@@ -95,7 +94,7 @@ So our estimator is:
         (when (in-quarter-disk-p x y)
           (incf inside))))
     (* 4.0d0 (/ inside n 1.0d0))))
-~~~~~~~~
+```
 
 A point is inside the quarter disk if `x^2 + y^2 \leq 1`$, which is the Pythagorean distance from the origin. Uniform sampling over the square gives each region a probability equal to its area, which is the key property that makes the ratio of counts equal the ratio of areas.
 
@@ -109,8 +108,7 @@ How accurate is our estimate? For a `\text{Bernoulli}(\pi/4)`$ variable, the sta
 
 where `\hat{p}`$ is the sample proportion. The program reports both the estimate and the standard error:
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun estimate-pi-with-se (n)
   "Estimate pi and also report a standard error for the estimate."
   (let* ((inside 0)
@@ -125,7 +123,7 @@ where `\hat{p}`$ is the sample proportion. The program reports both the estimate
     (setf estimate (* 4.0d0 p-hat))
     (setf se (* 4.0d0 (sqrt (/ (* p-hat (- 1.0d0 p-hat)) n 1.0d0))))
     (values estimate se)))
-~~~~~~~~
+```
 
 By the Central Limit Theorem, an approximate 95% confidence interval for `\pi`$ is `\hat{\pi} \pm 1.96 \cdot \mathrm{SE}`$. This lets us report the estimate along with a principled measure of its uncertainty.
 

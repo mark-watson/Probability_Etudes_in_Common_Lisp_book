@@ -44,13 +44,12 @@ The PMF satisfies two properties: every value `p(x)`$ is non-negative, and the s
 
 In the example program, we represent a PMF as an alist mapping values to probabilities:
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defstruct pmf
   "A discrete probability mass function represented as an alist
    mapping value -> probability."
   table)
-~~~~~~~~
+```
 
 The function **pmf-total-probability** verifies the normalization axiom by summing all the probabilities. For a valid PMF, this sum must equal 1.
 
@@ -66,14 +65,13 @@ The CDF is a non-decreasing function: as `x`$ increases, `F(x)`$ can only go up 
 
 The CDF is more universal than the PMF: it is defined for any real-valued random variable, discrete or continuous. Two random variables that share the same CDF share the same distribution. When we talk about "the distribution of `X`$," the CDF is the most general representation.
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun cdf (p x)
   "Cumulative distribution function F_X(x) = P(X <= x)."
   (reduce #'+ (mapcar (lambda (entry)
                         (if (<= (car entry) x) (cdr entry) 0))
                       (pmf-table p))))
-~~~~~~~~
+```
 
 ## Expected Value
 
@@ -85,13 +83,12 @@ E[X] = \sum_{x} x \, p(x).
 
 The expected value represents the long-run average if we repeated the experiment many times. If we rolled two dice a million times and averaged all the sums, we would get a number very close to `E[X] = 7`$.
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun expectation (p)
   "E[X] = sum of x * p_X(x), the mean of the distribution."
   (reduce #'+ (mapcar (lambda (entry) (* (car entry) (cdr entry)))
                       (pmf-table p))))
-~~~~~~~~
+```
 
 More generally, for any function `g`$ of a random variable `X`$, the **law of the unconscious statistician** says:
 
@@ -135,13 +132,12 @@ There is a computational shortcut that is often easier to use:
 
 This identity comes from expanding `(X - \mu)^2`$ and using linearity of expectation. The program uses this shortcut:
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun variance (p)
   "Var(X) = E[X^2] - (E[X])^2."
   (let ((ex (expectation p)))
     (- (expectation-of-square p) (* ex ex))))
-~~~~~~~~
+```
 
 The **standard deviation** `\sigma`$ is the square root of the variance. It has the same units as the random variable itself, which makes it more interpretable. A standard deviation of `2.4`$ for the sum of two dice means that a typical roll deviates from the mean of `7`$ by about `2.4`$ points.
 

@@ -56,15 +56,14 @@ All the properties from the discrete case still hold: linearity of expectation, 
 
 Since we cannot always compute integrals in closed form, the program uses **numerical integration** with the midpoint rule. The idea is to approximate the area under a curve by summing the areas of thin rectangles:
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun integrate-rectangle (f a b &optional (n 100000))
   "Approximate the integral of f from a to b via the midpoint rule
    with N subintervals."
   (let ((h (/ (- b a) n)))
     (* h (loop for i from 0 below n
                sum (funcall f (+ a (* h (+ i 1/2))))))))
-~~~~~~~~
+```
 
 With `100{,}000`$ subintervals, this method is accurate enough for our purposes. The error of the midpoint rule decreases as `1/N^2`$ for smooth functions, so doubling the number of intervals reduces the error by a factor of `4`$.
 
@@ -72,8 +71,7 @@ More sophisticated methods (Simpson's rule, Gaussian quadrature, adaptive quadra
 
 To make the accuracy difference concrete, the program also includes **Simpson's rule**, which fits a parabola to each pair of subintervals and has error `O(1/N^4)`$ instead of `O(1/N^2)`$:
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun integrate-simpson (f a b &optional (n 100000))
   "Composite Simpson's rule: error O(1/N^4)."
   (let* ((n (if (evenp n) n (1+ n)))
@@ -82,7 +80,7 @@ To make the accuracy difference concrete, the program also includes **Simpson's 
     (loop for i from 1 below n
           do (incf s (* (if (oddp i) 4.0d0 2.0d0) (funcall f (+ a (* i h))))))
     (* (/ h 3.0d0) s)))
-~~~~~~~~
+```
 
 Integrating `e^x`$ over `[0, 1]`$ (exact value `e - 1`$) exposes the two convergence rates. Each time `N`$ doubles, the midpoint error falls by about `4`$ and the Simpson error by about `16`$:
 
@@ -168,12 +166,11 @@ The total probability comes out as `.9999`$ rather than a clean `1.0`$ because w
 
 The uniform distribution is also the raw material for generating samples from other distributions. The **inverse-transform method** takes a `U \sim \text{Uniform}(0, 1)`$ draw and returns `F^{-1}(U)`$, which then has CDF `F`$. For the exponential, `F(x) = 1 - e^{-\lambda x}`$ inverts to `x = -\ln(1 - U)/\lambda`$:
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun sample-exponential (lambda-rate)
   "Draw Exponential(lambda) by inverse transform: -ln(1-U)/lambda."
   (/ (- (log (- 1.0d0 (random 1.0d0 *rng-state*)))) lambda-rate))
-~~~~~~~~
+```
 
 Drawing `100{,}000`$ samples this way and computing their mean and variance recovers `1/\lambda`$ and `1/\lambda^2`$ (Problem 5.8):
 
@@ -198,19 +195,17 @@ The parameter `\mu`$ is the mean (the center of the bell) and `\sigma^2`$ is the
 
 The normal distribution is universal: it appears as the limiting distribution of sums of independent random variables (the Central Limit Theorem in Chapter 7), as the maximum-entropy distribution given fixed mean and variance, and as the equilibrium distribution of many diffusive physical processes. Its density is smooth, symmetric, and unimodal, and it has the pleasant property that a sum of independent normals is again normal.
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun normal-pdf (mu sigma x)
   "PDF of Normal(mu, sigma^2): the bell curve."
   (let ((z (/ (- x mu) sigma)))
     (/ (exp (- (/ (* z z) 2.0)))
        (* sigma (sqrt (* 2.0 pi))))))
-~~~~~~~~
+```
 
 The normal CDF does not have a closed form in terms of elementary functions. It is written through the **error function** (erf) by the identity `\Phi(x) = \tfrac{1}{2}\big(1 + \mathrm{erf}(x/\sqrt{2})\big)`$. The program approximates erf with a rational-times-Gaussian formula from Abramowitz and Stegun (7.1.26), whose absolute error is below `1.5 \times 10^{-7}`$:
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun standard-normal-cdf (x)
   "CDF of the standard normal, Phi(x) = 0.5 (1 + erf(x / sqrt 2)), using the
    Abramowitz & Stegun 7.1.26 approximation to erf."
@@ -222,7 +217,7 @@ The normal CDF does not have a closed form in terms of elementary functions. It 
                                    (* t-val (+ 1.421413741d0 ...)))))))
          (erf (- 1.0 (* y (exp (- (* z z)))))))
     (* 0.5 (+ 1.0 (* sign erf)))))
-~~~~~~~~
+```
 
 The `x/\sqrt{2}`$ scaling is what turns the error function into the standard normal CDF; without it the code would return the CDF of a normal with variance `1/2`$. The modern successor to Abramowitz and Stegun is the NIST Digital Library of Mathematical Functions at [dlmf.nist.gov](https://dlmf.nist.gov).
 

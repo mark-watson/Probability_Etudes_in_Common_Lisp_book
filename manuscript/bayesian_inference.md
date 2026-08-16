@@ -80,8 +80,7 @@ E[\theta] = \frac{a}{a + b}, \qquad \mathrm{Var}(\theta) = \frac{a b}{(a + b)^2 
 
 The program implements these formulas:
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun beta-mean (a b)
   "Posterior/prior mean of Beta(a,b): E[theta] = a / (a + b)."
   (/ a (+ a b)))
@@ -89,7 +88,7 @@ The program implements these formulas:
 (defun beta-variance (a b)
   "Var(theta) for Beta(a,b): a b / ((a+b)^2 (a+b+1))."
   (/ (* a b) (* (expt (+ a b) 2) (+ a b 1))))
-~~~~~~~~
+```
 
 ### Other Conjugate Pairs
 
@@ -107,13 +106,12 @@ Conjugacy is a mathematical convenience: it lets us do inference in closed form.
 
 The beauty of conjugacy is that the update rule is just addition. Each observed success increments a, and each observed failure increments b:
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun bayesian-update (prior-a prior-b successes failures)
   "Conjugate update for a Beta prior with Bernoulli/binomial data.
    Prior  Beta(a, b)  ->  Posterior Beta(a + s, b + f)."
   (values (+ prior-a successes) (+ prior-b failures)))
-~~~~~~~~
+```
 
 This is the same result whether we update all at once (batch) or one observation at a time (sequential). Conjugacy guarantees that the final posterior is the same either way. This equivalence of batch and sequential updating is a very useful property; it means we can process data as it arrives without waiting for it all to be collected.
 
@@ -155,8 +153,7 @@ We start with a `\text{Beta}(1, 1)`$ prior, which is the uniform distribution on
 
 Then we simulate `100`$ flips of a coin with true bias `\theta = 0.7`$ and update our posterior. The program shows the posterior at several intermediate stages:
 
-{lang="lisp",linenos=off}
-~~~~~~~~
+```lisp
 (defun main ()
   (let ((prior-a 1) (prior-b 1))      ; Beta(1,1) = Uniform(0,1)
     (print-beta prior-a prior-b "Prior         ")
@@ -170,7 +167,7 @@ Then we simulate `100`$ flips of a coin with true bias `\theta = 0.7`$ and updat
           (print-beta pa pb "Posterior     "))
         ;; Show intermediate stages
         ...))))
-~~~~~~~~
+```
 
 ## Running the Example
 
